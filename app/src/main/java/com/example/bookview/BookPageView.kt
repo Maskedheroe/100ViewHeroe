@@ -5,6 +5,9 @@ import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
+import android.widget.Button
+import com.example.app.R
+
 
 class BookPageView : View {
     private var pointPaint: Paint? = null//绘制各标识点的画笔
@@ -14,8 +17,16 @@ class BookPageView : View {
     private var bitmap:Bitmap? = null //缓存bitMap
     private var bitmapCanvas :Canvas? = null
 
-    private var pathCPaint:Paint? = null //绘制A区域画笔
-    private var pathC:Path? = null
+    private var pathCPaint : Paint? = null //绘制A区域画笔
+    private var pathC : Path? = null
+
+    private var pathBPaint : Paint? = null
+    private var pathB : Path? = null
+
+    companion object {
+        public const val STYLE_TOP_RIGHT = "STYLE_TOP_RIGHT"
+        public const val STYLE_LOWER_RIGHT = "STYLE_LOWER_RIGHT"
+    }
 
     private var a: MyPoint? = null
     private var f: MyPoint? = null
@@ -51,8 +62,8 @@ class BookPageView : View {
         viewWidth = defaultWidth
         viewHeight = defaultHeight
 
-        a = MyPoint(400f, 800f)
-        f = MyPoint(viewWidth.toFloat(), viewHeight.toFloat())
+        a = MyPoint()
+        f = MyPoint()
         g = MyPoint()
         e = MyPoint()
         h = MyPoint()
@@ -82,37 +93,124 @@ class BookPageView : View {
         pathCPaint?.xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_ATOP)
         pathC = Path()
 
+        pathBPaint = Paint()
+        pathBPaint?.color = resources.getColor(R.color.blue_light)
+        pathBPaint?.isAntiAlias  = true
+        pathBPaint?.xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_ATOP)
+        pathB = Path()
+
+    }
+
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        val height = measureSize(defaultHeight,heightMeasureSpec)
+        val width = measureSize(defaultWidth,widthMeasureSpec)
+        setMeasuredDimension(width,height)
+
+        viewWidth = width
+        viewHeight = height
+        a?.x = -1f
+        a?.y = -1f
+    }
+
+    private fun measureSize(defaultSize: Int, measureSpec: Int): Int {
+        var result : Int = defaultSize
+        val specMode = View.MeasureSpec.getMode(measureSpec)
+        val specSize = View.MeasureSpec.getSize(measureSpec)
+
+        if (specMode == View.MeasureSpec.EXACTLY){
+            result = specSize
+        }else if (specMode == View.MeasureSpec.AT_MOST){
+            result = Math.min(result,specSize)
+        }
+        return  result
     }
 
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        //为了看清楚点与View的位置关系绘制一个背景
-        canvas.drawRect(0f, 0f, viewWidth.toFloat(), viewHeight.toFloat(), bgPaint!!)
-        //绘制各标识点
-        canvas.drawText("a", a!!.x, a!!.y, pointPaint!!)
-        canvas.drawText("f", f!!.x, f!!.y, pointPaint!!)
-        canvas.drawText("g", g!!.x, g!!.y, pointPaint!!)
-
-        canvas.drawText("e", e!!.x, e!!.y, pointPaint!!)
-        canvas.drawText("h", h!!.x, h!!.y, pointPaint!!)
-
-        canvas.drawText("c", c!!.x, c!!.y, pointPaint!!)
-        canvas.drawText("j", j!!.x, j!!.y, pointPaint!!)
-
-        canvas.drawText("b", b!!.x, b!!.y, pointPaint!!)
-        canvas.drawText("k", k!!.x, k!!.y, pointPaint!!)
-
-        canvas.drawText("d", d!!.x, d!!.y, pointPaint!!)
-        canvas.drawText("i", i!!.x, i!!.y, pointPaint!!)
-
         bitmap = Bitmap.createBitmap(viewWidth.toInt(),viewHeight.toInt(),Bitmap.Config.ARGB_8888)
         bitmapCanvas = Canvas(bitmap)
-        bitmapCanvas?.drawPath(getPathAFromLowerRight(),pathAPaint)
-        bitmapCanvas?.drawPath(getPathC(),pathCPaint)
+        if (a?.x==-1f&&a?.y==-1f){
+            bitmapCanvas?.drawPath(getPathDefault(),pathAPaint);
+        }else{
+            if (f?.x == viewWidth.toFloat() && f?.y==0f){
+                bitmapCanvas?.drawPath(getPathAFromTopRight(),pathAPaint)
+            }else if (f?.x == viewWidth.toFloat() && f?.y == viewHeight.toFloat()){
+                bitmapCanvas?.drawPath(getPathAFromLowerRight(),pathAPaint)
+            }
+            bitmapCanvas?.drawPath(getPathC(),pathCPaint)
+            bitmapCanvas?.drawPath(getpathB(),pathBPaint)
+        }
         canvas.drawBitmap(bitmap,0f,0f,null)
+    }
+
+    private fun getPathAFromTopRight(): Path {
+        pathA?.reset()
+        pathA?.lineTo(c?.x!!,c?.y!!);//移动到c点
+        pathA?.quadTo(e?.x!!,e?.y!!,b?.x!!,b?.y!!)//从c到b画贝塞尔曲线，控制点为e
+        pathA?.lineTo(a?.x!!,a?.y!!);//移动到a点
+        pathA?.lineTo(k?.x!!,k?.y!!);//移动到k点
+        pathA?.quadTo(h?.x!!,h?.y!!,j?.x!!,j?.y!!)//从k到j画贝塞尔曲线，控制点为h
+        pathA?.lineTo(viewWidth.toFloat(),viewHeight.toFloat())//移动到右下角
+        pathA?.lineTo(0f, viewHeight.toFloat())//移动到左下角
+        pathA?.close()
+        return pathA!!
+    }
 
 
+    /**
+     * 设置触摸点
+     * @param x
+     * @param y
+     * @param style
+     */
+    fun setTouchPoint(x:Float,y:Float,style:String){
+        when(style){
+            STYLE_LOWER_RIGHT ->{
+                f?.x = viewWidth.toFloat()
+                f?.y = 0f
+            }
+            STYLE_LOWER_RIGHT ->{
+                f?.x = viewWidth.toFloat()
+                f?.y = viewHeight.toFloat()
+            }
+        }
+        a?.x = x
+        a?.y = y
+        calcPointsXY(a!!,f!!)
+        postInvalidate() //刷新
+    }
+
+    /**
+     * 回到默认状态
+     */
+    fun setDefaultPath(){
+        a?.x = -1f
+        a?.y = -1f
+        postInvalidate()
+    }
+    /**
+     * 绘制默认的界面
+     * @return
+     */
+    private fun getPathDefault():Path{
+        pathA?.reset()
+        pathA?.lineTo(0f,viewHeight.toFloat())
+        pathA?.lineTo(viewWidth.toFloat(),viewHeight.toFloat())
+        pathA?.lineTo(viewWidth.toFloat(),0f)
+        pathA?.close()
+        return pathA!!
+    }
+
+    private fun getpathB(): Path {
+        pathB?.reset()
+        pathB?.lineTo(0f,viewHeight.toFloat())
+        pathB?.lineTo(viewWidth.toFloat(),viewHeight.toFloat())
+        pathB?.lineTo(viewWidth.toFloat(),0f)
+        pathB?.close()
+        return pathB!!
     }
 
     private fun getPathC(): Path {
@@ -139,6 +237,10 @@ class BookPageView : View {
         return pathA!!
 
     }
+
+    public fun getViewWidth():Float = viewWidth.toFloat()
+
+    public fun getViewHeight():Float = viewHeight.toFloat()
 
     /**
      * 计算各点坐标
