@@ -1,4 +1,4 @@
-package com.example.bookfloder;
+package com.example.app;
 
 import org.junit.Test;
 

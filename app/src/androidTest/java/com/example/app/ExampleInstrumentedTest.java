@@ -1,4 +1,4 @@
-package com.example.bookfloder;
+package com.example.app;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
