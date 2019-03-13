@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
+import com.example.bookfloder.R
 
 class BookPageView : View {
     private var pointPaint: Paint? = null//绘制各标识点的画笔
@@ -14,8 +15,12 @@ class BookPageView : View {
     private var bitmap:Bitmap? = null //缓存bitMap
     private var bitmapCanvas :Canvas? = null
 
-    private var pathCPaint:Paint? = null //绘制A区域画笔
-    private var pathC:Path? = null
+    private var pathCPaint : Paint? = null //绘制A区域画笔
+    private var pathC : Path? = null
+
+    private var pathBPaint : Paint? = null
+    private var pathB : Path? = null
+
 
     private var a: MyPoint? = null
     private var f: MyPoint? = null
@@ -82,6 +87,12 @@ class BookPageView : View {
         pathCPaint?.xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_ATOP)
         pathC = Path()
 
+        pathBPaint = Paint()
+        pathBPaint?.color = resources.getColor(R.color.blue_light)
+        pathBPaint?.isAntiAlias  = true
+        pathBPaint?.xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_ATOP)
+        pathB = Path()
+
 
     }
 
@@ -111,9 +122,19 @@ class BookPageView : View {
         bitmapCanvas = Canvas(bitmap)
         bitmapCanvas?.drawPath(getPathAFromLowerRight(),pathAPaint)
         bitmapCanvas?.drawPath(getPathC(),pathCPaint)
+        bitmapCanvas?.drawPath(getpathB(),pathBPaint)
         canvas.drawBitmap(bitmap,0f,0f,null)
 
 
+    }
+
+    private fun getpathB(): Path {
+        pathB?.reset()
+        pathB?.lineTo(0f,viewHeight.toFloat())
+        pathB?.lineTo(viewWidth.toFloat(),viewHeight.toFloat())
+        pathB?.lineTo(viewWidth.toFloat(),0f)
+        pathB?.close()
+        return pathB!!
     }
 
     private fun getPathC(): Path {
