@@ -8,10 +8,11 @@
 
     <com.example.bookview.BookPageView
         android:id="@+id/view_book_page"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="300dp"
+        android:layout_height="450dp"
         android:layout_marginLeft="15dp"
         android:layout_marginTop="15dp"
+        android:clickable="true"
         tools:ignore="MissingConstraints" />
 
 
