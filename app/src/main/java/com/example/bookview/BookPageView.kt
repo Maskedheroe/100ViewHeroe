@@ -82,6 +82,7 @@ class BookPageView : View {
         pathCPaint?.xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_ATOP)
         pathC = Path()
 
+
     }
 
 
