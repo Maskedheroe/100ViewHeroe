@@ -1,31 +1,38 @@
 package com.example.bookview
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
-import android.widget.Button
+import android.view.animation.LinearInterpolator
+import android.widget.Scroller
 import com.example.app.R
 
 
 class BookPageView : View {
     private var pointPaint: Paint? = null//绘制各标识点的画笔
     private var bgPaint: Paint? = null//背景画笔
-    private var pathAPaint:Paint? = null //绘制A区域画笔
-    private var pathA:Path? = null
-    private var bitmap:Bitmap? = null //缓存bitMap
-    private var bitmapCanvas :Canvas? = null
+    private var pathAPaint: Paint? = null //绘制A区域画笔
+    private var pathA: Path? = null
+    private var bitmap: Bitmap? = null //缓存bitMap
+    private var bitmapCanvas: Canvas? = null
 
-    private var pathCPaint : Paint? = null //绘制A区域画笔
-    private var pathC : Path? = null
+    private var pathCPaint: Paint? = null //绘制A区域画笔
+    private var pathC: Path? = null
 
-    private var pathBPaint : Paint? = null
-    private var pathB : Path? = null
+    private var pathBPaint: Paint? = null
+    private var pathB: Path? = null
+
+    private var mStyle: String? = null
+
+    private var mScroller: Scroller? = null  //接住scroller来实现滑落效果
 
     companion object {
         public const val STYLE_TOP_RIGHT = "STYLE_TOP_RIGHT"
         public const val STYLE_LOWER_RIGHT = "STYLE_LOWER_RIGHT"
+        public const val STYLE_MIDDLE = "STYLE_MIDDLE"
+        public const val STYLE_RIGHT = "STYLE_RIGHT"
+        public const val STYLE_LEFT = "STYLE_LEFT"
     }
 
     private var a: MyPoint? = null
@@ -88,25 +95,26 @@ class BookPageView : View {
         pathA = Path()
 
         pathCPaint = Paint()
-        pathCPaint?.color  = Color.YELLOW
+        pathCPaint?.color = Color.YELLOW
         pathCPaint?.isAntiAlias = true
         pathCPaint?.xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_ATOP)
         pathC = Path()
 
         pathBPaint = Paint()
         pathBPaint?.color = resources.getColor(R.color.blue_light)
-        pathBPaint?.isAntiAlias  = true
+        pathBPaint?.isAntiAlias = true
         pathBPaint?.xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_ATOP)
         pathB = Path()
 
+        mScroller = Scroller(context, LinearInterpolator())  //正常速率滑动
     }
 
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        val height = measureSize(defaultHeight,heightMeasureSpec)
-        val width = measureSize(defaultWidth,widthMeasureSpec)
-        setMeasuredDimension(width,height)
+        val height = measureSize(defaultHeight, heightMeasureSpec)
+        val width = measureSize(defaultWidth, widthMeasureSpec)
+        setMeasuredDimension(width, height)
 
         viewWidth = width
         viewHeight = height
@@ -115,45 +123,45 @@ class BookPageView : View {
     }
 
     private fun measureSize(defaultSize: Int, measureSpec: Int): Int {
-        var result : Int = defaultSize
+        var result: Int = defaultSize
         val specMode = View.MeasureSpec.getMode(measureSpec)
         val specSize = View.MeasureSpec.getSize(measureSpec)
 
-        if (specMode == View.MeasureSpec.EXACTLY){
+        if (specMode == View.MeasureSpec.EXACTLY) {
             result = specSize
-        }else if (specMode == View.MeasureSpec.AT_MOST){
-            result = Math.min(result,specSize)
+        } else if (specMode == View.MeasureSpec.AT_MOST) {
+            result = Math.min(result, specSize)
         }
-        return  result
+        return result
     }
 
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        bitmap = Bitmap.createBitmap(viewWidth.toInt(),viewHeight.toInt(),Bitmap.Config.ARGB_8888)
+        bitmap = Bitmap.createBitmap(viewWidth.toInt(), viewHeight.toInt(), Bitmap.Config.ARGB_8888)
         bitmapCanvas = Canvas(bitmap)
-        if (a?.x==-1f&&a?.y==-1f){
-            bitmapCanvas?.drawPath(getPathDefault(),pathAPaint);
-        }else{
-            if (f?.x == viewWidth.toFloat() && f?.y==0f){
-                bitmapCanvas?.drawPath(getPathAFromTopRight(),pathAPaint)
-            }else if (f?.x == viewWidth.toFloat() && f?.y == viewHeight.toFloat()){
-                bitmapCanvas?.drawPath(getPathAFromLowerRight(),pathAPaint)
+        if (a?.x == -1f && a?.y == -1f) {
+            bitmapCanvas?.drawPath(getPathDefault(), pathAPaint);
+        } else {
+            if (f?.x == viewWidth.toFloat() && f?.y == 0f) {
+                bitmapCanvas?.drawPath(getPathAFromTopRight(), pathAPaint)
+            } else if (f?.x == viewWidth.toFloat() && f?.y == viewHeight.toFloat()) {
+                bitmapCanvas?.drawPath(getPathAFromLowerRight(), pathAPaint)
             }
-            bitmapCanvas?.drawPath(getPathC(),pathCPaint)
-            bitmapCanvas?.drawPath(getpathB(),pathBPaint)
+            bitmapCanvas?.drawPath(getPathC(), pathCPaint)
+            bitmapCanvas?.drawPath(getpathB(), pathBPaint)
         }
-        canvas.drawBitmap(bitmap,0f,0f,null)
+        canvas.drawBitmap(bitmap, 0f, 0f, null)
     }
 
     private fun getPathAFromTopRight(): Path {
         pathA?.reset()
-        pathA?.lineTo(c?.x!!,c?.y!!);//移动到c点
-        pathA?.quadTo(e?.x!!,e?.y!!,b?.x!!,b?.y!!)//从c到b画贝塞尔曲线，控制点为e
-        pathA?.lineTo(a?.x!!,a?.y!!);//移动到a点
-        pathA?.lineTo(k?.x!!,k?.y!!);//移动到k点
-        pathA?.quadTo(h?.x!!,h?.y!!,j?.x!!,j?.y!!)//从k到j画贝塞尔曲线，控制点为h
-        pathA?.lineTo(viewWidth.toFloat(),viewHeight.toFloat())//移动到右下角
+        pathA?.lineTo(c?.x!!, c?.y!!);//移动到c点
+        pathA?.quadTo(e?.x!!, e?.y!!, b?.x!!, b?.y!!)//从c到b画贝塞尔曲线，控制点为e
+        pathA?.lineTo(a?.x!!, a?.y!!);//移动到a点
+        pathA?.lineTo(k?.x!!, k?.y!!);//移动到k点
+        pathA?.quadTo(h?.x!!, h?.y!!, j?.x!!, j?.y!!)//从k到j画贝塞尔曲线，控制点为h
+        pathA?.lineTo(viewWidth.toFloat(), viewHeight.toFloat())//移动到右下角
         pathA?.lineTo(0f, viewHeight.toFloat())//移动到左下角
         pathA?.close()
         return pathA!!
@@ -164,83 +172,139 @@ class BookPageView : View {
      * 设置触摸点
      * @param x
      * @param y
-     * @param style
+     * @param style 判断是左上角还是右下角开始翻页的。
      */
-    fun setTouchPoint(x:Float,y:Float,style:String){
-        when(style){
-            STYLE_LOWER_RIGHT ->{
-                f?.x = viewWidth.toFloat()
-                f?.y = 0f
-            }
-            STYLE_LOWER_RIGHT ->{
-                f?.x = viewWidth.toFloat()
-                f?.y = viewHeight.toFloat()
-            }
-        }
+    fun setTouchPoint(x: Float, y: Float, style: String) {
+        /*MyPoint touchPoint = new MyPoint();
+	a.x = x;
+	a.y = y;
+	this.style = style;*/
+        var touchPoint: MyPoint = MyPoint()
         a?.x = x
         a?.y = y
-        calcPointsXY(a!!,f!!)
-        postInvalidate() //刷新
+        this.mStyle = style
+        when (mStyle) {
+            STYLE_TOP_RIGHT -> {
+                f?.x = viewWidth.toFloat()
+                f?.y = 0f
+                calcPointsXY(a!!, f!!)
+                touchPoint = MyPoint(x, y)
+                if (calcPointsCX(touchPoint, f!!) < 0) {
+                    //如果c点x坐标小于0则重新测量a点坐标
+                    calcPointAByTouchPoint()
+                    calcPointsXY(a!!, f!!)
+                }
+                postInvalidate()
+            }
+            STYLE_LEFT, STYLE_RIGHT -> {
+                a?.y = viewHeight - 1f
+                f?.x = viewWidth.toFloat()
+                f?.y = viewHeight.toFloat()
+                calcPointsXY(a!!, f!!)
+                postInvalidate()
+            }
+            STYLE_LOWER_RIGHT -> {
+                f?.x = viewWidth.toFloat()
+                f?.y = viewHeight.toFloat()
+                calcPointsXY(a!!, f!!)
+                touchPoint = MyPoint(x, y)
+                if (calcPointsCX(touchPoint, f!!) < 0) { //如果c点x坐标小于0则重新测量a点坐标
+                    calcPointAByTouchPoint()
+                    calcPointsXY(a!!, f!!)
+                }
+                postInvalidate()
+            }
+        }
+    }
+
+
+    private fun calcPointAByTouchPoint() {
+        val w0 = viewWidth - c?.x!!
+        val w1 = Math.abs(f?.x!! - a?.x!!)
+        val w2 = viewWidth * w1 / w0
+        a?.x = Math.abs(f?.x!! - w2)
+
+        val h1 = Math.abs(f?.y!! - a?.y!!)
+        val h2 = w2 * h1 / w1
+        a?.y = Math.abs(f?.y!! - h2)
+    }
+
+    /**
+     * 计算C点的X值
+     * @param a
+     * @param f
+     * @return
+     */
+    private fun calcPointsCX(a: MyPoint, f: MyPoint): Float {
+        val g = MyPoint()
+        val e = MyPoint()
+        g.x = (a.x + f.x) / 2
+        g.y = (a.y + f.y) / 2
+
+        e.x = g.x - (f.y - g.y) * (f.y - g.y) / (f.x - g.x)
+        e.y = f.y
+        return e.x - (f.x - e.x) / 2
     }
 
     /**
      * 回到默认状态
      */
-    fun setDefaultPath(){
+    fun setDefaultPath() {
         a?.x = -1f
         a?.y = -1f
         postInvalidate()
     }
+
     /**
      * 绘制默认的界面
      * @return
      */
-    private fun getPathDefault():Path{
+    private fun getPathDefault(): Path {
         pathA?.reset()
-        pathA?.lineTo(0f,viewHeight.toFloat())
-        pathA?.lineTo(viewWidth.toFloat(),viewHeight.toFloat())
-        pathA?.lineTo(viewWidth.toFloat(),0f)
+        pathA?.lineTo(0f, viewHeight.toFloat())
+        pathA?.lineTo(viewWidth.toFloat(), viewHeight.toFloat())
+        pathA?.lineTo(viewWidth.toFloat(), 0f)
         pathA?.close()
         return pathA!!
     }
 
     private fun getpathB(): Path {
         pathB?.reset()
-        pathB?.lineTo(0f,viewHeight.toFloat())
-        pathB?.lineTo(viewWidth.toFloat(),viewHeight.toFloat())
-        pathB?.lineTo(viewWidth.toFloat(),0f)
+        pathB?.lineTo(0f, viewHeight.toFloat())
+        pathB?.lineTo(viewWidth.toFloat(), viewHeight.toFloat())
+        pathB?.lineTo(viewWidth.toFloat(), 0f)
         pathB?.close()
         return pathB!!
     }
 
     private fun getPathC(): Path {
         pathC?.reset()
-        pathC?.moveTo(i!!.x,i!!.y)
-        pathC?.lineTo(d!!.x,d!!.y)
-        pathC?.lineTo(b!!.x,b!!.y)
-        pathC?.lineTo(a!!.x,a!!.y)
-        pathC?.lineTo(k!!.x,k!!.y)
+        pathC?.moveTo(i!!.x, i!!.y)
+        pathC?.lineTo(d!!.x, d!!.y)
+        pathC?.lineTo(b!!.x, b!!.y)
+        pathC?.lineTo(a!!.x, a!!.y)
+        pathC?.lineTo(k!!.x, k!!.y)
         pathC?.close()
         return pathC!!
     }
 
     private fun getPathAFromLowerRight(): Path {
         pathA?.reset()
-        pathA?.lineTo(0f,viewHeight.toFloat())
-        pathA?.lineTo(c!!.x,c!!.y)//移动到c点
-        pathA?.quadTo(e!!.x,e!!.y,b!!.x,b!!.y)
-        pathA?.lineTo(a!!.x,a!!.y)
-        pathA?.lineTo(k!!.x,k!!.y)
-        pathA?.quadTo(h!!.x,h!!.y,j!!.x,j!!.y)
-        pathA?.lineTo(viewWidth.toFloat(),0f)
+        pathA?.lineTo(0f, viewHeight.toFloat())
+        pathA?.lineTo(c!!.x, c!!.y)//移动到c点
+        pathA?.quadTo(e!!.x, e!!.y, b!!.x, b!!.y)
+        pathA?.lineTo(a!!.x, a!!.y)
+        pathA?.lineTo(k!!.x, k!!.y)
+        pathA?.quadTo(h!!.x, h!!.y, j!!.x, j!!.y)
+        pathA?.lineTo(viewWidth.toFloat(), 0f)
         pathA?.close()
         return pathA!!
 
     }
 
-    public fun getViewWidth():Float = viewWidth.toFloat()
+    public fun getViewWidth(): Float = viewWidth.toFloat()
 
-    public fun getViewHeight():Float = viewHeight.toFloat()
+    public fun getViewHeight(): Float = viewHeight.toFloat()
 
     /**
      * 计算各点坐标
@@ -298,5 +362,33 @@ class BookPageView : View {
         val pointY = ((y1 - y2) * (x3 * y4 - x4 * y3) - (x1 * y2 - x2 * y1) * (y3 - y4)) / ((y1 - y2) * (x3 - x4) - (x1 - x2) * (y3 - y4))
 
         return MyPoint(pointX, pointY)
+    }
+
+    override fun computeScroll() {
+        if (mScroller?.computeScrollOffset()!!) {
+            val x: Float = mScroller!!.currX.toFloat()
+            val y: Float = mScroller!!.currY.toFloat()
+
+            if (mStyle.equals(STYLE_TOP_RIGHT)) {
+                setTouchPoint(x, y, STYLE_TOP_RIGHT)
+            } else {
+                setTouchPoint(x, y, STYLE_LOWER_RIGHT)
+            }
+            if (mScroller!!.finalX.toFloat() == x && mScroller!!.finalY.toFloat() == y) {
+                setDefaultPath()
+            }
+        }
+    }
+    public fun startCancelAnim() {
+        var dx = 0
+        var dy = 0
+        if (mStyle.equals(STYLE_TOP_RIGHT)) {
+            dx = viewWidth - 1 - a?.x?.toInt()!!
+            dy = 1 - a?.y!!.toInt()
+        } else {
+            dx = viewWidth - 1 - a?.x!!.toInt()
+            dy = viewHeight - 1 - a?.y!!.toInt()
+        }
+        mScroller!!.startScroll(a!!.x.toInt(),a!!.y.toInt(),dx, dy,400)
     }
 }
