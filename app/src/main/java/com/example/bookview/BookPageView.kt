@@ -17,6 +17,8 @@ class BookPageView : View {
     private var bitmap: Bitmap? = null //缓存bitMap
     private var bitmapCanvas: Canvas? = null
 
+    private var textPaint: Paint? = null  //文字画笔
+
     private var pathCPaint: Paint? = null //绘制A区域画笔
     private var pathC: Path? = null
 
@@ -107,6 +109,16 @@ class BookPageView : View {
         pathB = Path()
 
         mScroller = Scroller(context, LinearInterpolator())  //正常速率滑动
+
+
+        //初始化画笔
+        textPaint = Paint()
+        textPaint!!.color = Color.BLACK
+        textPaint!!.textAlign = Paint.Align.CENTER
+        textPaint!!.isSubpixelText = true
+        textPaint!!.textSize = 30f
+
+
     }
 
 
@@ -141,17 +153,38 @@ class BookPageView : View {
         bitmap = Bitmap.createBitmap(viewWidth.toInt(), viewHeight.toInt(), Bitmap.Config.ARGB_8888)
         bitmapCanvas = Canvas(bitmap)
         if (a?.x == -1f && a?.y == -1f) {
-            bitmapCanvas?.drawPath(getPathDefault(), pathAPaint);
+            drawPathAContent(bitmapCanvas!!, getPathDefault(), pathAPaint)
         } else {
             if (f?.x == viewWidth.toFloat() && f?.y == 0f) {
-                bitmapCanvas?.drawPath(getPathAFromTopRight(), pathAPaint)
+                drawPathAContent(bitmapCanvas!!,getPathAFromTopRight(),pathAPaint)
             } else if (f?.x == viewWidth.toFloat() && f?.y == viewHeight.toFloat()) {
-                bitmapCanvas?.drawPath(getPathAFromLowerRight(), pathAPaint)
+                drawPathAContent(bitmapCanvas!!,getPathAFromLowerRight(),pathAPaint)
             }
             bitmapCanvas?.drawPath(getPathC(), pathCPaint)
             bitmapCanvas?.drawPath(getpathB(), pathBPaint)
         }
         canvas.drawBitmap(bitmap, 0f, 0f, null)
+    }
+
+    /**
+     * 绘制A区域内容
+     * @param canvas
+     * @param pathA
+     * @param pathPaint
+     */
+    private fun drawPathAContent(bitmapCanvas: Canvas, pathDefault: Path, pathAPaint: Paint?) {
+        val contentBitmap = Bitmap.createBitmap(viewWidth,viewHeight,Bitmap.Config.RGB_565)
+        val contentCanvas = Canvas(contentBitmap)
+
+        //下面开始绘制区域内的内容
+        contentCanvas.drawPath(pathA,pathAPaint)
+        contentCanvas.drawText("此情无计可消除",viewWidth - 260f,viewHeight - 100f,textPaint)
+
+        //结束绘制区域内的内容
+        bitmapCanvas.save()
+        bitmapCanvas.clipPath(pathA,Region.Op.INTERSECT) //对绘制内容进行裁剪，取和A区域的交集
+        bitmapCanvas.drawBitmap(contentBitmap,0f,0f,null)
+        bitmapCanvas.restore()
     }
 
     private fun getPathAFromTopRight(): Path {
@@ -379,6 +412,7 @@ class BookPageView : View {
             }
         }
     }
+
     public fun startCancelAnim() {
         var dx = 0
         var dy = 0
@@ -389,6 +423,6 @@ class BookPageView : View {
             dx = viewWidth - 1 - a?.x!!.toInt()
             dy = viewHeight - 1 - a?.y!!.toInt()
         }
-        mScroller!!.startScroll(a!!.x.toInt(),a!!.y.toInt(),dx, dy,400)
+        mScroller!!.startScroll(a!!.x.toInt(), a!!.y.toInt(), dx, dy, 400)
     }
 }
