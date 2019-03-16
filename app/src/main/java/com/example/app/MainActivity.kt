@@ -53,7 +53,9 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 MotionEvent.ACTION_MOVE -> bookPageView!!.setTouchPoint(event.x, event.y, style!!)
-                MotionEvent.ACTION_UP -> bookPageView!!.startCancelAnim()
+                MotionEvent.ACTION_UP -> {
+                    bookPageView!!.startCancelAnim()
+                }
             }
             false
         })

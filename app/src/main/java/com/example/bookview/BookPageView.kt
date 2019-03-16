@@ -15,8 +15,9 @@ class BookPageView : View {
     private var pathAPaint: Paint? = null //绘制A区域画笔
     private var pathA: Path? = null
     private var bitmap: Bitmap? = null //缓存bitMap
-    private var bitmapCanvas: Canvas? = null
+    private var bitmapCanvas: Canvas? = null     //区域C的绘制画笔
 
+    private var pathCContentPaint: Paint? = null
     private var textPaint: Paint? = null  //文字画笔
 
     private var pathCPaint: Paint? = null //绘制A区域画笔
@@ -105,7 +106,7 @@ class BookPageView : View {
         pathBPaint = Paint()
         pathBPaint?.color = resources.getColor(R.color.blue_light)
         pathBPaint?.isAntiAlias = true
-        pathBPaint?.xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_ATOP)
+//        pathBPaint?.xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_ATOP)
         pathB = Path()
 
         mScroller = Scroller(context, LinearInterpolator())  //正常速率滑动
@@ -118,7 +119,10 @@ class BookPageView : View {
         textPaint!!.isSubpixelText = true
         textPaint!!.textSize = 30f
 
-
+        //初始化C区域画笔
+        pathCContentPaint = Paint()
+        pathCContentPaint?.color = Color.YELLOW
+        pathCContentPaint?.isAntiAlias = true
     }
 
 
@@ -156,14 +160,79 @@ class BookPageView : View {
             drawPathAContent(bitmapCanvas!!, getPathDefault(), pathAPaint)
         } else {
             if (f?.x == viewWidth.toFloat() && f?.y == 0f) {
-                drawPathAContent(bitmapCanvas!!,getPathAFromTopRight(),pathAPaint)
+                drawPathAContent(bitmapCanvas!!, getPathAFromTopRight(), pathAPaint)
+                drawPathCContent(bitmapCanvas!!, getPathAFromTopRight(), pathCContentPaint)
+                bitmapCanvas!!.drawPath(getPathC(),pathCPaint!!)
+                drawPathBContent(bitmapCanvas!!, getPathAFromTopRight(), pathBPaint)
             } else if (f?.x == viewWidth.toFloat() && f?.y == viewHeight.toFloat()) {
-                drawPathAContent(bitmapCanvas!!,getPathAFromLowerRight(),pathAPaint)
+                drawPathAContent(bitmapCanvas!!, getPathAFromLowerRight(), pathAPaint)
+                drawPathCContent(bitmapCanvas!!, getPathAFromLowerRight(), pathCContentPaint)
+                bitmapCanvas!!.drawPath(getPathC(),pathCPaint!!)
+                drawPathBContent(bitmapCanvas!!, getPathAFromLowerRight(), pathBPaint)
             }
-            bitmapCanvas?.drawPath(getPathC(), pathCPaint)
-            bitmapCanvas?.drawPath(getpathB(), pathBPaint)
         }
         canvas.drawBitmap(bitmap, 0f, 0f, null)
+    }
+
+    private fun drawPathBContent(bitmapCanvas: Canvas, pathAFromTopRight: Path, pathBPaint: Paint?) {
+        val contentBitmap = Bitmap.createBitmap(viewWidth, viewHeight, Bitmap.Config.RGB_565)
+        val contentCanvas = Canvas(contentBitmap)
+
+        contentCanvas.drawPath(getpathB(), pathBPaint!!)
+        contentCanvas.drawText("B区域BBBBBBBBB", viewWidth - 260f, viewHeight - 100f, textPaint)
+
+        bitmapCanvas.save()
+        bitmapCanvas.clipPath(pathAFromTopRight)  //裁剪出A区域
+        bitmapCanvas.clipPath(getPathC(), Region.Op.UNION) //裁剪出A和C区域的全集
+        bitmapCanvas.clipPath(getpathB(), Region.Op.REVERSE_DIFFERENCE) //裁剪出B区域中不同于与AC区域的部分
+        bitmapCanvas.drawBitmap(contentBitmap, 0f, 0f, null)
+        bitmapCanvas.restore()
+    }
+
+
+    /*/**
+     * 绘制C区域内容
+     * @param canvas
+     * @param pathA
+     * @param pathPaint
+     */
+    private void drawPathCContent(Canvas canvas, Path pathA, Paint pathPaint){
+
+
+    }
+}*/
+    private fun drawPathCContent(bitmapCanvas: Canvas, pathAFromTopRight: Path, pathCContentPaint: Paint?) {
+        val contentBitMap = Bitmap.createBitmap(viewWidth, viewHeight, Bitmap.Config.RGB_565)
+        val contentCanvas = Canvas(contentBitMap)
+
+        contentCanvas.drawPath(getpathB(), pathCContentPaint!!)  //绘制背景
+        contentCanvas.drawText("这是C区域的内容CCCCCCCC", viewWidth - 260f, viewHeight - 100f, textPaint!!)
+
+        bitmapCanvas.save()
+        bitmapCanvas.clipPath(pathAFromTopRight)
+
+        bitmapCanvas.clipPath(getPathC(),Region.Op.UNION)
+        bitmapCanvas.clipPath(getPathC(),Region.Op.INTERSECT)
+
+        val eh: Float = Math.hypot((f?.x!! - e!!.x).toDouble(), (h!!.y - f!!.y).toDouble()).toFloat()
+        val sin0 = (f!!.x - e!!.x) / eh
+        val cos0 = (h!!.y  - f!!.y) / eh
+
+        //设置翻转和旋转矩阵
+        val mMatrixArray = floatArrayOf(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 1.0f)
+        mMatrixArray[0] = -(1-(2 * sin0 * sin0))
+        mMatrixArray[1] = 2 * sin0 * cos0
+        mMatrixArray[3] = 2 * sin0 * cos0
+        mMatrixArray[4] = 1 - 2 * sin0 * sin0
+
+        val mMAtrix = Matrix()
+        mMAtrix.reset()
+        mMAtrix.setValues(mMatrixArray) //翻转和旋转
+        mMAtrix.preTranslate(-e?.x!!,-e?.y!!)
+        mMAtrix.postTranslate(e?.x!!,e?.y!!)
+
+        bitmapCanvas.drawBitmap(contentBitMap,mMAtrix,null)
+        bitmapCanvas.restore()
     }
 
     /**
@@ -173,17 +242,17 @@ class BookPageView : View {
      * @param pathPaint
      */
     private fun drawPathAContent(bitmapCanvas: Canvas, pathDefault: Path, pathAPaint: Paint?) {
-        val contentBitmap = Bitmap.createBitmap(viewWidth,viewHeight,Bitmap.Config.RGB_565)
+        val contentBitmap = Bitmap.createBitmap(viewWidth, viewHeight, Bitmap.Config.RGB_565)
         val contentCanvas = Canvas(contentBitmap)
 
         //下面开始绘制区域内的内容
-        contentCanvas.drawPath(pathA,pathAPaint)
-        contentCanvas.drawText("此情无计可消除",viewWidth - 260f,viewHeight - 100f,textPaint)
+        contentCanvas.drawPath(pathDefault, pathAPaint)
+        contentCanvas.drawText("此情无计可消除", viewWidth - 260f, viewHeight - 100f, textPaint)
 
         //结束绘制区域内的内容
         bitmapCanvas.save()
-        bitmapCanvas.clipPath(pathA,Region.Op.INTERSECT) //对绘制内容进行裁剪，取和A区域的交集
-        bitmapCanvas.drawBitmap(contentBitmap,0f,0f,null)
+        bitmapCanvas.clipPath(pathDefault, Region.Op.INTERSECT) //对绘制内容进行裁剪，取和A区域的交集
+        bitmapCanvas.drawBitmap(contentBitmap, 0f, 0f, null)
         bitmapCanvas.restore()
     }
 
