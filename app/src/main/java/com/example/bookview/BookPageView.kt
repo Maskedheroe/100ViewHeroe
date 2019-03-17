@@ -2,6 +2,7 @@ package com.example.bookview
 
 import android.content.Context
 import android.graphics.*
+import android.graphics.drawable.GradientDrawable
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
@@ -187,20 +188,45 @@ class BookPageView : View {
         bitmapCanvas.clipPath(getpathB(), Region.Op.REVERSE_DIFFERENCE) //裁剪出B区域中不同于与AC区域的部分
         bitmapCanvas.drawBitmap(contentBitmap, 0f, 0f, null)
         bitmapCanvas.restore()
-    }
+        bitmapCanvas.save()
 
-
-    /*/**
-     * 绘制C区域内容
-     * @param canvas
-     * @param pathA
-     * @param pathPaint
-     */
-    private void drawPathCContent(Canvas canvas, Path pathA, Paint pathPaint){
-
+        drawPathBShadow(bitmapCanvas)
+        bitmapCanvas.restore()
 
     }
-}*/
+
+    private fun drawPathBShadow(bitmapCanvas: Canvas) {  //绘制B区域阴影
+        val deepColor = 0xff111111
+        //int lightColor = 0x00111111;
+        val lightColor = 0x00111111
+        val gradientColors = intArrayOf(deepColor.toInt(), lightColor)
+        val deepOffset = 0f //深色端的偏移值
+        val lightOffset = 0f
+        val aTof = Math.hypot((a?.x!!.toDouble() - f?.x!!.toDouble()), (a?.y!!.toDouble() - f?.y!!.toDouble())).toFloat()
+        val viewDiagonalLength = Math.hypot(viewWidth.toDouble(), viewHeight.toDouble()).toFloat()
+
+        var left = 0
+        var right = 0
+        val top = c?.y?.toInt()!!
+        val bottom = (viewDiagonalLength + c?.y!!).toInt()
+        var gradientDrawable: GradientDrawable? = null
+        if (mStyle.equals(STYLE_TOP_RIGHT)) {
+            gradientDrawable = GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, gradientColors)
+            gradientDrawable.gradientType = GradientDrawable.LINEAR_GRADIENT //线性渐变
+            left = (c?.x!! - deepOffset).toInt()
+            right = (c?.x!! + deepOffset).toInt()
+        } else {
+            gradientDrawable = GradientDrawable(GradientDrawable.Orientation.RIGHT_LEFT, gradientColors)
+            gradientDrawable.gradientType = GradientDrawable.LINEAR_GRADIENT
+
+            left = (c?.x!! - aTof / 4 - lightOffset).toInt()
+            right = (c?.x!! + deepOffset).toInt()
+        }
+        gradientDrawable.setBounds(left, top, right, bottom)  //设置阴影矩形
+        val rotateDegrees = Math.toDegrees(Math.atan2(e?.x!!.toDouble() - f?.x!!, h?.y!!.toDouble() - f?.y!!)) //旋转角度
+        bitmapCanvas.rotate(rotateDegrees.toFloat(), c?.x!!, c?.y!!)
+        gradientDrawable.draw(bitmapCanvas)
+    }
     private fun drawPathCContent(bitmapCanvas: Canvas, pathAFromTopRight: Path, pathCContentPaint: Paint?) {
         val contentBitMap = Bitmap.createBitmap(viewWidth, viewHeight, Bitmap.Config.RGB_565)
         val contentCanvas = Canvas(contentBitMap)
