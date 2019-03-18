@@ -187,8 +187,8 @@ class BookPageView : View {
         bitmapCanvas.clipPath(getPathC(), Region.Op.UNION) //裁剪出A和C区域的全集
         bitmapCanvas.clipPath(getpathB(), Region.Op.REVERSE_DIFFERENCE) //裁剪出B区域中不同于与AC区域的部分
         bitmapCanvas.drawBitmap(contentBitmap, 0f, 0f, null)
-        bitmapCanvas.restore()
-        bitmapCanvas.save()
+//        bitmapCanvas.restore()
+//        bitmapCanvas.save()
 
         drawPathBShadow(bitmapCanvas)
         bitmapCanvas.restore()
@@ -196,8 +196,44 @@ class BookPageView : View {
     }
 
     private fun drawPathBShadow(bitmapCanvas: Canvas) {  //绘制B区域阴影
+
+        /**
+        int deepColor = 0xff111111;//为了让效果更明显使用此颜色代码，具体可根据实际情况调整
+        int lightColor = 0x00111111;
+        int[] gradientColors = new int[] {deepColor,lightColor};//渐变颜色数组
+
+        int deepOffset = 0;//深色端的偏移值
+        int lightOffset = 0;//浅色端的偏移值
+        float aTof =(float) Math.hypot((a.x - f.x),(a.y - f.y));//a到f的距离
+        float viewDiagonalLength = (float) Math.hypot(viewWidth, viewHeight);//对角线长度
+
+        int left;
+        int right;
+        int top = (int) c.y;
+        int bottom = (int) (viewDiagonalLength + c.y);
+        GradientDrawable gradientDrawable;
+        if(style.equals(STYLE_TOP_RIGHT)){//f点在右上角
+        //从左向右线性渐变
+        gradientDrawable =new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,gradientColors);
+        gradientDrawable.setGradientType(GradientDrawable.LINEAR_GRADIENT);//线性渐变
+
+        left = (int) (c.x - deepOffset);//c点位于左上角
+        right = (int) (c.x + aTof/4 + lightOffset);
+        }else {
+        //从右向左线性渐变
+        gradientDrawable =new GradientDrawable(GradientDrawable.Orientation.RIGHT_LEFT,gradientColors);
+        gradientDrawable.setGradientType(GradientDrawable.LINEAR_GRADIENT);
+
+        left = (int) (c.x - aTof/4 - lightOffset);//c点位于左下角
+        right = (int) (c.x + deepOffset);
+        }
+        gradientDrawable.setBounds(left,top,right,bottom);//设置阴影矩形
+
+        float rotateDegrees = (float) Math.toDegrees(Math.atan2(e.x- f.x, h.y - f.y));//旋转角度
+        canvas.rotate(rotateDegrees, c.x, c.y);//以c为中心点旋转
+        gradientDrawable.draw(canvas);
+         */
         val deepColor = 0xff111111
-        //int lightColor = 0x00111111;
         val lightColor = 0x00111111
         val gradientColors = intArrayOf(deepColor.toInt(), lightColor)
         val deepOffset = 0f //深色端的偏移值
@@ -214,7 +250,7 @@ class BookPageView : View {
             gradientDrawable = GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, gradientColors)
             gradientDrawable.gradientType = GradientDrawable.LINEAR_GRADIENT //线性渐变
             left = (c?.x!! - deepOffset).toInt()
-            right = (c?.x!! + deepOffset).toInt()
+            right = (c?.x!! + aTof/4+lightOffset).toInt()
         } else {
             gradientDrawable = GradientDrawable(GradientDrawable.Orientation.RIGHT_LEFT, gradientColors)
             gradientDrawable.gradientType = GradientDrawable.LINEAR_GRADIENT
@@ -227,6 +263,8 @@ class BookPageView : View {
         bitmapCanvas.rotate(rotateDegrees.toFloat(), c?.x!!, c?.y!!)
         gradientDrawable.draw(bitmapCanvas)
     }
+
+
     private fun drawPathCContent(bitmapCanvas: Canvas, pathAFromTopRight: Path, pathCContentPaint: Paint?) {
         val contentBitMap = Bitmap.createBitmap(viewWidth, viewHeight, Bitmap.Config.RGB_565)
         val contentCanvas = Canvas(contentBitMap)
