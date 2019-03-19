@@ -196,43 +196,6 @@ class BookPageView : View {
     }
 
     private fun drawPathBShadow(bitmapCanvas: Canvas) {  //绘制B区域阴影
-
-        /**
-        int deepColor = 0xff111111;//为了让效果更明显使用此颜色代码，具体可根据实际情况调整
-        int lightColor = 0x00111111;
-        int[] gradientColors = new int[] {deepColor,lightColor};//渐变颜色数组
-
-        int deepOffset = 0;//深色端的偏移值
-        int lightOffset = 0;//浅色端的偏移值
-        float aTof =(float) Math.hypot((a.x - f.x),(a.y - f.y));//a到f的距离
-        float viewDiagonalLength = (float) Math.hypot(viewWidth, viewHeight);//对角线长度
-
-        int left;
-        int right;
-        int top = (int) c.y;
-        int bottom = (int) (viewDiagonalLength + c.y);
-        GradientDrawable gradientDrawable;
-        if(style.equals(STYLE_TOP_RIGHT)){//f点在右上角
-        //从左向右线性渐变
-        gradientDrawable =new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,gradientColors);
-        gradientDrawable.setGradientType(GradientDrawable.LINEAR_GRADIENT);//线性渐变
-
-        left = (int) (c.x - deepOffset);//c点位于左上角
-        right = (int) (c.x + aTof/4 + lightOffset);
-        }else {
-        //从右向左线性渐变
-        gradientDrawable =new GradientDrawable(GradientDrawable.Orientation.RIGHT_LEFT,gradientColors);
-        gradientDrawable.setGradientType(GradientDrawable.LINEAR_GRADIENT);
-
-        left = (int) (c.x - aTof/4 - lightOffset);//c点位于左下角
-        right = (int) (c.x + deepOffset);
-        }
-        gradientDrawable.setBounds(left,top,right,bottom);//设置阴影矩形
-
-        float rotateDegrees = (float) Math.toDegrees(Math.atan2(e.x- f.x, h.y - f.y));//旋转角度
-        canvas.rotate(rotateDegrees, c.x, c.y);//以c为中心点旋转
-        gradientDrawable.draw(canvas);
-         */
         val deepColor = 0xff111111
         val lightColor = 0x00111111
         val gradientColors = intArrayOf(deepColor.toInt(), lightColor)
@@ -306,6 +269,49 @@ class BookPageView : View {
      * @param pathPaint
      */
     private fun drawPathAContent(bitmapCanvas: Canvas, pathDefault: Path, pathAPaint: Paint?) {
+
+        /*/**
+ * 绘制C区域内容
+ * @param canvas
+ * @param pathA
+ * @param pathPaint
+ */
+private void drawPathCContent(Canvas canvas, Path pathA, Paint pathPaint){
+	Bitmap contentBitmap = Bitmap.createBitmap(viewWidth, viewHeight, Bitmap.Config.RGB_565);
+	Canvas contentCanvas = new Canvas(contentBitmap);
+
+	//下面开始绘制区域内的内容...
+	contentCanvas.drawPath(getPathB(),pathPaint);//绘制一个背景，path用B的就行
+	contentCanvas.drawText("这是在A区域的内容...AAAA", viewWidth-260, viewHeight-100, textPaint);
+
+	//结束绘制区域内的内容...
+
+	canvas.save();
+	canvas.clipPath(pathA);
+	canvas.clipPath(getPathC(), Region.Op.REVERSE_DIFFERENCE);//裁剪出C区域不同于A区域的部分
+
+	float eh = (float) Math.hypot(f.x - e.x,h.y - f.y);
+	float sin0 = (f.x - e.x) / eh;
+	float cos0 = (h.y - f.y) / eh;
+	//设置翻转和旋转矩阵
+	float[] mMatrixArray = { 0, 0, 0, 0, 0, 0, 0, 0, 1.0f };
+	mMatrixArray[0] = -(1-2 * sin0 * sin0);
+	mMatrixArray[1] = 2 * sin0 * cos0;
+	mMatrixArray[3] = 2 * sin0 * cos0;
+	mMatrixArray[4] = 1 - 2 * sin0 * sin0;
+
+	Matrix mMatrix = new Matrix();
+	mMatrix.reset();
+	mMatrix.setValues(mMatrixArray);//翻转和旋转
+	mMatrix.preTranslate(-e.x, -e.y);//沿当前XY轴负方向位移得到 矩形A₃B₃C₃D₃
+	mMatrix.postTranslate(e.x, e.y);//沿原XY轴方向位移得到 矩形A4 B4 C4 D4
+	canvas.drawBitmap(contentBitmap, mMatrix, null);
+
+	drawPathCShadow(canvas);//调用绘制阴影方法
+	canvas.restore();
+}
+*/
+
         val contentBitmap = Bitmap.createBitmap(viewWidth, viewHeight, Bitmap.Config.RGB_565)
         val contentCanvas = Canvas(contentBitmap)
 
@@ -315,9 +321,67 @@ class BookPageView : View {
 
         //结束绘制区域内的内容
         bitmapCanvas.save()
-        bitmapCanvas.clipPath(pathDefault, Region.Op.INTERSECT) //对绘制内容进行裁剪，取和A区域的交集
-        bitmapCanvas.drawBitmap(contentBitmap, 0f, 0f, null)
+        bitmapCanvas.clipPath(pathA!!)
+        bitmapCanvas.clipPath(getPathC(),Region.Op.REVERSE_DIFFERENCE) //裁剪出C区域不同于A区域的部分
+
+        val eh = Math.hypot(f?.x!!.toDouble() - e?.x!!,h?.y!!.toDouble() - f?.y!!).toFloat()
+        val sin0 = (f?.x!! - e?.x!!) / eh
+        val cos0 = (h?.y!! - f?.y!!) / eh
+
+        val mMatrixArray = floatArrayOf(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 1.0f)
+        mMatrixArray[0] = -(1-2 * sin0 * sin0)
+        mMatrixArray[1] = 2 * sin0 * cos0
+        mMatrixArray[3] = 2 * sin0 * cos0
+        mMatrixArray[4] = 1 - 2 * sin0 * sin0
+
+        val mMatrix = Matrix()
+        mMatrix.reset()
+        mMatrix.setValues(mMatrixArray) //翻转和旋转
+        mMatrix.preTranslate(-e?.x!!, -e?.y!!)  //沿当前XY轴负方向位移得到 矩形A₃B₃C₃D₃
+        mMatrix.postTranslate(e?.x!!, e?.y!!)  //沿原XY轴方向位移得到 矩形A4 B4 C4 D4
+        bitmapCanvas.drawBitmap(contentBitmap,mMatrix,null)
+        drawPathCShadow(bitmapCanvas)  //绘制阴影方法
         bitmapCanvas.restore()
+    }
+
+    private fun drawPathCShadow(bitmapCanvas: Canvas) {
+        /*int deepColor = 0xff111111;//为了让效果更明显使用此颜色代码，具体可根据实际情况调整
+//        int deepColor = 0x55333333;
+        int lightColor = 0x00333333;
+        int[] gradientColors = {lightColor,deepColor};//渐变颜色数组
+
+        int deepOffset = 1;//深色端的偏移值
+        int lightOffset = -30;//浅色端的偏移值
+        float viewDiagonalLength = (float) Math.hypot(viewWidth, viewHeight);//view对角线长度
+        int midpoint_ce = (int) (c.x + e.x) / 2;//ce中点
+        int midpoint_jh = (int) (j.y + h.y) / 2;//jh中点
+        float minDisToControlPoint = Math.min(Math.abs(midpoint_ce - e.x), Math.abs(midpoint_jh - h.y));//中点到控制点的最小值
+
+        int left;
+        int right;
+        int top = (int) c.y;
+        int bottom = (int) (viewDiagonalLength + c.y);
+        GradientDrawable gradientDrawable;
+        if (style.equals(STYLE_TOP_RIGHT)) {
+            gradientDrawable = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, gradientColors);
+            gradientDrawable.setGradientType(GradientDrawable.LINEAR_GRADIENT);
+
+            left = (int) (c.x - lightOffset);
+            right = (int) (c.x + minDisToControlPoint + deepOffset);
+        } else {
+            gradientDrawable = new GradientDrawable(GradientDrawable.Orientation.RIGHT_LEFT, gradientColors);
+            gradientDrawable.setGradientType(GradientDrawable.LINEAR_GRADIENT);
+
+            left = (int) (c.x - minDisToControlPoint - deepOffset);
+            right = (int) (c.x + lightOffset);
+        }
+        gradientDrawable.setBounds(left,top,right,bottom);
+
+        float mDegrees = (float) Math.toDegrees(Math.atan2(e.x- f.x, h.y - f.y));
+        canvas.rotate(mDegrees, c.x, c.y);
+        gradientDrawable.draw(canvas);*/
+
+        val deepColor = 0xff111111
     }
 
     private fun getPathAFromTopRight(): Path {
