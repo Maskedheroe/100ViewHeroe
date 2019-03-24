@@ -163,12 +163,12 @@ class BookPageView : View {
             if (f?.x == viewWidth.toFloat() && f?.y == 0f) {
                 drawPathAContent(bitmapCanvas!!, getPathAFromTopRight(), pathAPaint)
                 drawPathCContent(bitmapCanvas!!, getPathAFromTopRight(), pathCContentPaint)
-                bitmapCanvas!!.drawPath(getPathC(),pathCPaint!!)
+                bitmapCanvas!!.drawPath(getPathC(), pathCPaint!!)
                 drawPathBContent(bitmapCanvas!!, getPathAFromTopRight(), pathBPaint)
             } else if (f?.x == viewWidth.toFloat() && f?.y == viewHeight.toFloat()) {
                 drawPathAContent(bitmapCanvas!!, getPathAFromLowerRight(), pathAPaint)
                 drawPathCContent(bitmapCanvas!!, getPathAFromLowerRight(), pathCContentPaint)
-                bitmapCanvas!!.drawPath(getPathC(),pathCPaint!!)
+                bitmapCanvas!!.drawPath(getPathC(), pathCPaint!!)
                 drawPathBContent(bitmapCanvas!!, getPathAFromLowerRight(), pathBPaint)
             }
         }
@@ -189,6 +189,7 @@ class BookPageView : View {
         bitmapCanvas.drawBitmap(contentBitmap, 0f, 0f, null)
 //        bitmapCanvas.restore()
 //        bitmapCanvas.save()
+
 
         drawPathBShadow(bitmapCanvas)
         bitmapCanvas.restore()
@@ -213,7 +214,7 @@ class BookPageView : View {
             gradientDrawable = GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, gradientColors)
             gradientDrawable.gradientType = GradientDrawable.LINEAR_GRADIENT //线性渐变
             left = (c?.x!! - deepOffset).toInt()
-            right = (c?.x!! + aTof/4+lightOffset).toInt()
+            right = (c?.x!! + aTof / 4 + lightOffset).toInt()
         } else {
             gradientDrawable = GradientDrawable(GradientDrawable.Orientation.RIGHT_LEFT, gradientColors)
             gradientDrawable.gradientType = GradientDrawable.LINEAR_GRADIENT
@@ -238,16 +239,16 @@ class BookPageView : View {
         bitmapCanvas.save()
         bitmapCanvas.clipPath(pathAFromTopRight)
 
-        bitmapCanvas.clipPath(getPathC(),Region.Op.UNION)
-        bitmapCanvas.clipPath(getPathC(),Region.Op.INTERSECT)
+        bitmapCanvas.clipPath(getPathC(), Region.Op.UNION)
+        bitmapCanvas.clipPath(getPathC(), Region.Op.INTERSECT)
 
         val eh: Float = Math.hypot((f?.x!! - e!!.x).toDouble(), (h!!.y - f!!.y).toDouble()).toFloat()
         val sin0 = (f!!.x - e!!.x) / eh
-        val cos0 = (h!!.y  - f!!.y) / eh
+        val cos0 = (h!!.y - f!!.y) / eh
 
         //设置翻转和旋转矩阵
         val mMatrixArray = floatArrayOf(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 1.0f)
-        mMatrixArray[0] = -(1-(2 * sin0 * sin0))
+        mMatrixArray[0] = -(1 - (2 * sin0 * sin0))
         mMatrixArray[1] = 2 * sin0 * cos0
         mMatrixArray[3] = 2 * sin0 * cos0
         mMatrixArray[4] = 1 - 2 * sin0 * sin0
@@ -255,10 +256,10 @@ class BookPageView : View {
         val mMAtrix = Matrix()
         mMAtrix.reset()
         mMAtrix.setValues(mMatrixArray) //翻转和旋转
-        mMAtrix.preTranslate(-e?.x!!,-e?.y!!)
-        mMAtrix.postTranslate(e?.x!!,e?.y!!)
+        mMAtrix.preTranslate(-e?.x!!, -e?.y!!)
+        mMAtrix.postTranslate(e?.x!!, e?.y!!)
 
-        bitmapCanvas.drawBitmap(contentBitMap,mMAtrix,null)
+        bitmapCanvas.drawBitmap(contentBitMap, mMAtrix, null)
         bitmapCanvas.restore()
     }
 
@@ -270,48 +271,6 @@ class BookPageView : View {
      */
     private fun drawPathAContent(bitmapCanvas: Canvas, pathDefault: Path, pathAPaint: Paint?) {
 
-        /*/**
- * 绘制C区域内容
- * @param canvas
- * @param pathA
- * @param pathPaint
- */
-private void drawPathCContent(Canvas canvas, Path pathA, Paint pathPaint){
-	Bitmap contentBitmap = Bitmap.createBitmap(viewWidth, viewHeight, Bitmap.Config.RGB_565);
-	Canvas contentCanvas = new Canvas(contentBitmap);
-
-	//下面开始绘制区域内的内容...
-	contentCanvas.drawPath(getPathB(),pathPaint);//绘制一个背景，path用B的就行
-	contentCanvas.drawText("这是在A区域的内容...AAAA", viewWidth-260, viewHeight-100, textPaint);
-
-	//结束绘制区域内的内容...
-
-	canvas.save();
-	canvas.clipPath(pathA);
-	canvas.clipPath(getPathC(), Region.Op.REVERSE_DIFFERENCE);//裁剪出C区域不同于A区域的部分
-
-	float eh = (float) Math.hypot(f.x - e.x,h.y - f.y);
-	float sin0 = (f.x - e.x) / eh;
-	float cos0 = (h.y - f.y) / eh;
-	//设置翻转和旋转矩阵
-	float[] mMatrixArray = { 0, 0, 0, 0, 0, 0, 0, 0, 1.0f };
-	mMatrixArray[0] = -(1-2 * sin0 * sin0);
-	mMatrixArray[1] = 2 * sin0 * cos0;
-	mMatrixArray[3] = 2 * sin0 * cos0;
-	mMatrixArray[4] = 1 - 2 * sin0 * sin0;
-
-	Matrix mMatrix = new Matrix();
-	mMatrix.reset();
-	mMatrix.setValues(mMatrixArray);//翻转和旋转
-	mMatrix.preTranslate(-e.x, -e.y);//沿当前XY轴负方向位移得到 矩形A₃B₃C₃D₃
-	mMatrix.postTranslate(e.x, e.y);//沿原XY轴方向位移得到 矩形A4 B4 C4 D4
-	canvas.drawBitmap(contentBitmap, mMatrix, null);
-
-	drawPathCShadow(canvas);//调用绘制阴影方法
-	canvas.restore();
-}
-*/
-
         val contentBitmap = Bitmap.createBitmap(viewWidth, viewHeight, Bitmap.Config.RGB_565)
         val contentCanvas = Canvas(contentBitmap)
 
@@ -322,14 +281,14 @@ private void drawPathCContent(Canvas canvas, Path pathA, Paint pathPaint){
         //结束绘制区域内的内容
         bitmapCanvas.save()
         bitmapCanvas.clipPath(pathA!!)
-        bitmapCanvas.clipPath(getPathC(),Region.Op.REVERSE_DIFFERENCE) //裁剪出C区域不同于A区域的部分
+        bitmapCanvas.clipPath(getPathC(), Region.Op.REVERSE_DIFFERENCE) //裁剪出C区域不同于A区域的部分
 
-        val eh = Math.hypot(f?.x!!.toDouble() - e?.x!!,h?.y!!.toDouble() - f?.y!!).toFloat()
+        val eh = Math.hypot(f?.x!!.toDouble() - e?.x!!, h?.y!!.toDouble() - f?.y!!).toFloat()
         val sin0 = (f?.x!! - e?.x!!) / eh
         val cos0 = (h?.y!! - f?.y!!) / eh
 
         val mMatrixArray = floatArrayOf(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 1.0f)
-        mMatrixArray[0] = -(1-2 * sin0 * sin0)
+        mMatrixArray[0] = -(1 - 2 * sin0 * sin0)
         mMatrixArray[1] = 2 * sin0 * cos0
         mMatrixArray[3] = 2 * sin0 * cos0
         mMatrixArray[4] = 1 - 2 * sin0 * sin0
@@ -339,49 +298,50 @@ private void drawPathCContent(Canvas canvas, Path pathA, Paint pathPaint){
         mMatrix.setValues(mMatrixArray) //翻转和旋转
         mMatrix.preTranslate(-e?.x!!, -e?.y!!)  //沿当前XY轴负方向位移得到 矩形A₃B₃C₃D₃
         mMatrix.postTranslate(e?.x!!, e?.y!!)  //沿原XY轴方向位移得到 矩形A4 B4 C4 D4
-        bitmapCanvas.drawBitmap(contentBitmap,mMatrix,null)
+        bitmapCanvas.drawBitmap(contentBitmap, mMatrix, null)
         drawPathCShadow(bitmapCanvas)  //绘制阴影方法
         bitmapCanvas.restore()
     }
 
     private fun drawPathCShadow(bitmapCanvas: Canvas) {
-        /*int deepColor = 0xff111111;//为了让效果更明显使用此颜色代码，具体可根据实际情况调整
-//        int deepColor = 0x55333333;
-        int lightColor = 0x00333333;
-        int[] gradientColors = {lightColor,deepColor};//渐变颜色数组
+        val deepColor = 0x55333333
+        val lightColor = 0x00333333
 
-        int deepOffset = 1;//深色端的偏移值
-        int lightOffset = -30;//浅色端的偏移值
-        float viewDiagonalLength = (float) Math.hypot(viewWidth, viewHeight);//view对角线长度
-        int midpoint_ce = (int) (c.x + e.x) / 2;//ce中点
-        int midpoint_jh = (int) (j.y + h.y) / 2;//jh中点
-        float minDisToControlPoint = Math.min(Math.abs(midpoint_ce - e.x), Math.abs(midpoint_jh - h.y));//中点到控制点的最小值
+        val gradientColors = intArrayOf(lightColor, deepColor)
 
-        int left;
-        int right;
-        int top = (int) c.y;
-        int bottom = (int) (viewDiagonalLength + c.y);
-        GradientDrawable gradientDrawable;
-        if (style.equals(STYLE_TOP_RIGHT)) {
-            gradientDrawable = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, gradientColors);
-            gradientDrawable.setGradientType(GradientDrawable.LINEAR_GRADIENT);
+        val deepOffset = 1
+        val lithtOffset = -30
+        val viewDiagonalLength = Math.hypot(viewWidth.toDouble(), viewHeight.toDouble()).toFloat() //计算对角线长度
+        val midpoint_ce = (c?.x!! + e?.x!!).toInt()
+        val midpoint_jh = (j?.y!! + h?.y!!).toInt()
 
-            left = (int) (c.x - lightOffset);
-            right = (int) (c.x + minDisToControlPoint + deepOffset);
-        } else {
-            gradientDrawable = new GradientDrawable(GradientDrawable.Orientation.RIGHT_LEFT, gradientColors);
-            gradientDrawable.setGradientType(GradientDrawable.LINEAR_GRADIENT);
+        val minDisToControlPoint = Math.min(Math.abs(midpoint_ce - e?.x!!), Math.abs(midpoint_jh - h?.y!!))//中点到控制点的最小值
 
-            left = (int) (c.x - minDisToControlPoint - deepOffset);
-            right = (int) (c.x + lightOffset);
+        var left = 0
+        var right = 0
+        val top = c?.y?.toInt()
+        val bottom = (viewDiagonalLength + c?.y!!).toInt()
+
+        var gradientDrawable = GradientDrawable()
+        if (mStyle.equals(STYLE_TOP_RIGHT)) {
+            //如果从右上角翻页
+            gradientDrawable = GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, gradientColors)
+            gradientDrawable.gradientType = GradientDrawable.LINEAR_GRADIENT
+
+            left = (c?.x!! - lithtOffset).toInt()
+            right = (c?.x!! + minDisToControlPoint + deepOffset).toInt()
+        }else{
+            gradientDrawable = GradientDrawable(GradientDrawable.Orientation.RIGHT_LEFT, gradientColors)
+            gradientDrawable.setGradientType(GradientDrawable.LINEAR_GRADIENT)
+
+            left =   (c?.x!! - minDisToControlPoint - deepOffset).toInt()
+            right =   (c?.x!! + lithtOffset).toInt()
         }
-        gradientDrawable.setBounds(left,top,right,bottom);
+        gradientDrawable.setBounds(left,top!!,right,bottom);
 
-        float mDegrees = (float) Math.toDegrees(Math.atan2(e.x- f.x, h.y - f.y));
-        canvas.rotate(mDegrees, c.x, c.y);
-        gradientDrawable.draw(canvas);*/
-
-        val deepColor = 0xff111111
+        val mDegrees =  Math.toDegrees(Math.atan2(e?.x!! - f?.x!!.toDouble(), h?.y!! - f?.y!!.toDouble())).toFloat()
+        bitmapCanvas.rotate(mDegrees, c?.x!!, c?.y!!)
+        gradientDrawable.draw(bitmapCanvas)
     }
 
     private fun getPathAFromTopRight(): Path {
