@@ -15,3 +15,16 @@ https://juejin.im/post/5a32b34c51882506146ef1a0
 
 5、日期选择器
 https://mp.weixin.qq.com/s/rZuqlYmmh0WJYNiHJu_26A
+
+6、带文字提示的SeekBar
+https://blog.csdn.net/kong_gu_you_lan/article/details/85112468
+
+7、倒计时控件
+https://blog.csdn.net/kong_gu_you_lan/article/details/78794034
+
+8、自定义Switch开关按钮的样式
+https://blog.csdn.net/kong_gu_you_lan/article/details/78728579
+
+9、拖拽练习
+https://blog.csdn.net/kong_gu_you_lan/article/details/78134068
+https://blog.csdn.net/kong_gu_you_lan/article/details/78195171
