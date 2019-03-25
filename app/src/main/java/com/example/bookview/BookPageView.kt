@@ -31,12 +31,14 @@ class BookPageView : View {
 
     private var mScroller: Scroller? = null  //接住scroller来实现滑落效果
 
+    private var mLPathAShadowDis : Float? = null  //A区域左阴影矩形短边长度参考值
+
     companion object {
-        public const val STYLE_TOP_RIGHT = "STYLE_TOP_RIGHT"
-        public const val STYLE_LOWER_RIGHT = "STYLE_LOWER_RIGHT"
-        public const val STYLE_MIDDLE = "STYLE_MIDDLE"
-        public const val STYLE_RIGHT = "STYLE_RIGHT"
-        public const val STYLE_LEFT = "STYLE_LEFT"
+        const val STYLE_TOP_RIGHT = "STYLE_TOP_RIGHT"
+        const val STYLE_LOWER_RIGHT = "STYLE_LOWER_RIGHT"
+        const val STYLE_MIDDLE = "STYLE_MIDDLE"
+        const val STYLE_RIGHT = "STYLE_RIGHT"
+        const val STYLE_LEFT = "STYLE_LEFT"
     }
 
     private var a: MyPoint? = null
@@ -270,20 +272,19 @@ class BookPageView : View {
      * @param pathPaint
      */
     private fun drawPathAContent(bitmapCanvas: Canvas, pathDefault: Path, pathAPaint: Paint?) {
-
         val contentBitmap = Bitmap.createBitmap(viewWidth, viewHeight, Bitmap.Config.RGB_565)
         val contentCanvas = Canvas(contentBitmap)
 
         //下面开始绘制区域内的内容
-        contentCanvas.drawPath(pathDefault, pathAPaint)
+        contentCanvas.drawPath(pathDefault, pathAPaint!!)
         contentCanvas.drawText("此情无计可消除", viewWidth - 260f, viewHeight - 100f, textPaint)
 
         //结束绘制区域内的内容
         bitmapCanvas.save()
-        bitmapCanvas.clipPath(pathA!!)
-        bitmapCanvas.clipPath(getPathC(), Region.Op.REVERSE_DIFFERENCE) //裁剪出C区域不同于A区域的部分
+        bitmapCanvas.clipPath(pathA!!,Region.Op.INTERSECT)
+        bitmapCanvas.drawBitmap(contentBitmap,0f,0f,null)
 
-        val eh = Math.hypot(f?.x!!.toDouble() - e?.x!!, h?.y!!.toDouble() - f?.y!!).toFloat()
+       /* val eh = Math.hypot(f?.x!!.toDouble() - e?.x!!, h?.y!!.toDouble() - f?.y!!).toFloat()
         val sin0 = (f?.x!! - e?.x!!) / eh
         val cos0 = (h?.y!! - f?.y!!) / eh
 
@@ -299,8 +300,42 @@ class BookPageView : View {
         mMatrix.preTranslate(-e?.x!!, -e?.y!!)  //沿当前XY轴负方向位移得到 矩形A₃B₃C₃D₃
         mMatrix.postTranslate(e?.x!!, e?.y!!)  //沿原XY轴方向位移得到 矩形A4 B4 C4 D4
         bitmapCanvas.drawBitmap(contentBitmap, mMatrix, null)
-        drawPathCShadow(bitmapCanvas)  //绘制阴影方法
+      */
+        drawPathALeftShadow(bitmapCanvas,pathA!!)
         bitmapCanvas.restore()
+    }
+
+    private fun drawPathALeftShadow(bitmapCanvas: Canvas, pathA: Path) {
+        bitmapCanvas.restore()
+        bitmapCanvas.save()
+
+        val deepColor = 0x33333333
+        val lightColor = 0x01333333
+        val gradientColors = intArrayOf(lightColor,deepColor)
+        var left = 0
+        var right = 0
+        val top = e?.y!!.toInt()
+        val bottom = (e?.y!! + viewHeight).toInt()
+        val gradientDrawable: GradientDrawable?
+        if (mStyle.equals(STYLE_TOP_RIGHT)) {
+            gradientDrawable =  GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, gradientColors)
+            gradientDrawable.setGradientType(GradientDrawable.LINEAR_GRADIENT)
+
+            left =  (e?.x!! - mLPathAShadowDis!! / 2).toInt()
+            right =  e!!.x.toInt()
+        } else {
+            gradientDrawable =  GradientDrawable(GradientDrawable.Orientation.RIGHT_LEFT, gradientColors)
+            gradientDrawable.setGradientType(GradientDrawable.LINEAR_GRADIENT);
+
+            left = e!!.x.toInt()
+            right = (e?.x!! + mLPathAShadowDis!! / 2).toInt()
+        }
+
+        gradientDrawable.setBounds(left,top,right,bottom)
+
+        val mDegrees = Math.toDegrees(Math.atan2(e?.x!!.toDouble() - a?.x!!,a?.y!! - e?.y!!.toDouble()))
+        bitmapCanvas.rotate(mDegrees.toFloat(),e?.x!!,e?.y!!)
+        gradientDrawable.draw(bitmapCanvas)
     }
 
     private fun drawPathCShadow(bitmapCanvas: Canvas) {
@@ -309,11 +344,11 @@ class BookPageView : View {
 
         val gradientColors = intArrayOf(lightColor, deepColor)
 
-        val deepOffset = 1
-        val lithtOffset = -30
+        val deepOffset = 1  //深色端的偏移值
+        val lithtOffset = -30  //浅色端的偏移值
         val viewDiagonalLength = Math.hypot(viewWidth.toDouble(), viewHeight.toDouble()).toFloat() //计算对角线长度
-        val midpoint_ce = (c?.x!! + e?.x!!).toInt()
-        val midpoint_jh = (j?.y!! + h?.y!!).toInt()
+        val midpoint_ce = (c?.x!! + e?.x!!).toInt() / 2
+        val midpoint_jh = (j?.y!! + h?.y!!).toInt() / 2
 
         val minDisToControlPoint = Math.min(Math.abs(midpoint_ce - e?.x!!), Math.abs(midpoint_jh - h?.y!!))//中点到控制点的最小值
 
@@ -330,16 +365,16 @@ class BookPageView : View {
 
             left = (c?.x!! - lithtOffset).toInt()
             right = (c?.x!! + minDisToControlPoint + deepOffset).toInt()
-        }else{
+        } else {
             gradientDrawable = GradientDrawable(GradientDrawable.Orientation.RIGHT_LEFT, gradientColors)
             gradientDrawable.setGradientType(GradientDrawable.LINEAR_GRADIENT)
 
-            left =   (c?.x!! - minDisToControlPoint - deepOffset).toInt()
-            right =   (c?.x!! + lithtOffset).toInt()
+            left = (c?.x!! - minDisToControlPoint - deepOffset).toInt()
+            right = (c?.x!! + lithtOffset).toInt()
         }
-        gradientDrawable.setBounds(left,top!!,right,bottom);
+        gradientDrawable.setBounds(left, top!!, right, bottom);
 
-        val mDegrees =  Math.toDegrees(Math.atan2(e?.x!! - f?.x!!.toDouble(), h?.y!! - f?.y!!.toDouble())).toFloat()
+        val mDegrees = Math.toDegrees(Math.atan2(e?.x!! - f?.x!!.toDouble(), h?.y!! - f?.y!!.toDouble())).toFloat()
         bitmapCanvas.rotate(mDegrees, c?.x!!, c?.y!!)
         gradientDrawable.draw(bitmapCanvas)
     }
@@ -527,6 +562,16 @@ class BookPageView : View {
         i!!.x = (j!!.x + 2 * h!!.x + k!!.x) / 4
         i!!.y = (2 * h!!.y + j!!.y + k!!.y) / 4
 
+        /*float lA = a.y-e.y;
+        float lB = e.x-a.x;
+        float lC = a.x*e.y-e.x*a.y;
+        lPathAShadowDis = Math.abs((lA*d.x+lB*d.y+lC)/(float) Math.hypot(lA,lB));
+        */
+
+        val lA = a.y - e!!.y
+        val lB = e?.x!! - a.x
+        val lC = a.x * e!!.y - e!!.x * a.y
+        mLPathAShadowDis = Math.abs(lA * d!!.x + lB * d!!.y + lC)/ Math.hypot(lA.toDouble(),lB.toDouble()).toFloat()
     }
 
     /**
