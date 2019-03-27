@@ -274,6 +274,7 @@ class BookPageView : View {
      * @param pathPaint
      */
     private fun drawPathAContent(bitmapCanvas: Canvas, pathDefault: Path, pathAPaint: Paint?) {
+
         val contentBitmap = Bitmap.createBitmap(viewWidth, viewHeight, Bitmap.Config.RGB_565)
         val contentCanvas = Canvas(contentBitmap)
         //下面开始绘制区域内的内容
@@ -285,9 +286,38 @@ class BookPageView : View {
         bitmapCanvas.clipPath(pathA!!, Region.Op.INTERSECT)
         bitmapCanvas.drawBitmap(contentBitmap, 0f, 0f, null)
 
-        drawPathALeftShadow(bitmapCanvas, pathA!!)
-        drawPathARightShadow(bitmapCanvas, pathA!!)
+        if (mStyle.equals(STYLE_LEFT) || mStyle.equals(STYLE_RIGHT)) {//左右水平翻页
+            drawPathAHorizontalShadow(bitmapCanvas, pathA!!)
+        } else {//上下翻页
+            drawPathALeftShadow(bitmapCanvas, pathA!!)
+            drawPathARightShadow(bitmapCanvas, pathA!!)
+        }
         bitmapCanvas.restore()
+    }
+
+    private fun drawPathAHorizontalShadow(bitmapCanvas: Canvas, pathA: Path) {
+        bitmapCanvas.restore()
+        bitmapCanvas.save()
+
+        val deepColor = 0x44333333
+        val lightColor = 0x01333333
+        val gradientColors = intArrayOf(lightColor, deepColor)
+
+        val gradientDrawable = GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, gradientColors)
+        gradientDrawable.gradientType = GradientDrawable.LINEAR_GRADIENT
+
+        val maxShadowWidth = 30
+        val left = (a?.x!! - Math.min(maxShadowWidth, (mRPathAShadowDis!!.toInt().shr(1)))).toInt()
+        val right = a?.x!!.toInt()
+        var top = 0
+        val bottom = viewHeight
+        gradientDrawable.setBounds(left,top,right,bottom)
+
+        bitmapCanvas.clipPath(pathA,Region.Op.INTERSECT)
+
+        val mDegrees = Math.toDegrees(Math.atan2(f?.x!!.toDouble() - a?.x!!,f?.y!!.toDouble() - h?.y!!))
+        bitmapCanvas.rotate(mDegrees.toFloat(),a?.x!!,a?.y!!)
+        gradientDrawable.draw(bitmapCanvas)
     }
 
     /*  /**
@@ -321,13 +351,24 @@ class BookPageView : View {
             top = h?.y!!.toInt()
             bottom = h?.y!!.toInt() + mRPathAShadowDis!!.toInt().shr(1)
         }
+
+        //裁剪出我们需要的区域
         gradientDrawable.setBounds(left, top, right, bottom)
+        val mPath = Path()
+        mPath.moveTo(a?.x!! - Math.max(mRPathAShadowDis!!, mLPathAShadowDis!!).toInt().shr(1), a?.y!!)
+        mPath.lineTo(h?.x!!, h?.y!!)
+        mPath.lineTo(a?.x!!, a?.y!!)
+        mPath.close()
+        bitmapCanvas.clipPath(pathA)
+        bitmapCanvas.clipPath(mPath, Region.Op.INTERSECT)
         val mDegrees = Math.toDegrees(Math.atan2(a?.y!!.toDouble() - h?.y!!, a?.x!!.toDouble() - h?.x!!))
         bitmapCanvas.rotate(mDegrees.toFloat(), h?.x!!, h?.y!!)
         gradientDrawable.draw(bitmapCanvas)
     }
 
     private fun drawPathALeftShadow(bitmapCanvas: Canvas, pathA: Path) {
+
+
         bitmapCanvas.restore()
         bitmapCanvas.save()
 
@@ -352,11 +393,20 @@ class BookPageView : View {
             left = e!!.x.toInt()
             right = (e?.x!! + mLPathAShadowDis!! / 2).toInt()
         }
+        //TODO 裁剪
+        val path = Path()
+        path.moveTo(a?.x!! - Math.max(mRPathAShadowDis!!, mLPathAShadowDis!!) / 2, a?.y!!)
+        path.lineTo(d?.x!!, d?.y!!)
+        path.lineTo(e?.x!!, e?.y!!)
+        path.lineTo(a?.x!!, a?.y!!)
+        path.close()
+        bitmapCanvas.clipPath(pathA)
+        bitmapCanvas.clipPath(path, Region.Op.INTERSECT)
+
+        val mDegress = Math.toDegrees(Math.atan2(e?.x!!.toDouble() - a?.x!!, a?.y!!.toDouble() - e?.y!!))
+        bitmapCanvas.rotate(mDegress.toFloat(), e?.x!!, e?.y!!)
 
         gradientDrawable.setBounds(left, top, right, bottom)
-
-        val mDegrees = Math.toDegrees(Math.atan2(e?.x!!.toDouble() - a?.x!!, a?.y!! - e?.y!!.toDouble()))
-        bitmapCanvas.rotate(mDegrees.toFloat(), e?.x!!, e?.y!!)
         gradientDrawable.draw(bitmapCanvas)
     }
 
@@ -401,12 +451,13 @@ class BookPageView : View {
         gradientDrawable.draw(bitmapCanvas)
     }
 
+
     private fun getPathAFromTopRight(): Path {
         pathA?.reset()
-        pathA?.lineTo(c?.x!!, c?.y!!);//移动到c点
+        pathA?.lineTo(c?.x!!, c?.y!!) //移动到c点
         pathA?.quadTo(e?.x!!, e?.y!!, b?.x!!, b?.y!!)//从c到b画贝塞尔曲线，控制点为e
-        pathA?.lineTo(a?.x!!, a?.y!!);//移动到a点
-        pathA?.lineTo(k?.x!!, k?.y!!);//移动到k点
+        pathA?.lineTo(a?.x!!, a?.y!!) //移动到a点
+        pathA?.lineTo(k?.x!!, k?.y!!) //移动到k点
         pathA?.quadTo(h?.x!!, h?.y!!, j?.x!!, j?.y!!)//从k到j画贝塞尔曲线，控制点为h
         pathA?.lineTo(viewWidth.toFloat(), viewHeight.toFloat())//移动到右下角
         pathA?.lineTo(0f, viewHeight.toFloat())//移动到左下角
@@ -426,7 +477,7 @@ class BookPageView : View {
 	a.x = x;
 	a.y = y;
 	this.style = style;*/
-        var touchPoint: MyPoint = MyPoint()
+        val touchPoint: MyPoint
         a?.x = x
         a?.y = y
         this.mStyle = style
@@ -496,7 +547,7 @@ class BookPageView : View {
     /**
      * 回到默认状态
      */
-    fun setDefaultPath() {
+    private fun setDefaultPath() {
         a?.x = -1f
         a?.y = -1f
         postInvalidate()
