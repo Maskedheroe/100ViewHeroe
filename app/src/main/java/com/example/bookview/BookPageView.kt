@@ -1,9 +1,11 @@
 package com.example.bookview
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.GradientDrawable
 import android.util.AttributeSet
+import android.view.MotionEvent
 import android.view.View
 import android.view.animation.LinearInterpolator
 import android.widget.Scroller
@@ -64,11 +66,10 @@ class BookPageView : View {
         init(context, attrs)
     }
 
-    constructor(context: Context) : super(context) {}
+    constructor(context: Context) : super(context)
 
     constructor(context: Context,
-                attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
-    }
+                attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr)
 
     private fun init(context: Context, attrs: AttributeSet?) {
         defaultWidth = 600
@@ -156,6 +157,38 @@ class BookPageView : View {
         return result
     }
 
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        super.onTouchEvent(event)
+        when (event!!.action) {
+            MotionEvent.ACTION_DOWN -> {
+                var x = event.getX()
+                val y = event.getY()
+                if (x <= viewWidth / 3) { //触摸在左边
+                    mStyle = STYLE_LEFT
+                    setTouchPoint(x, y, mStyle!!)
+                } else if (x > viewWidth / 3 && y <= viewHeight / 3) {//上边触摸
+                    mStyle = STYLE_TOP_RIGHT
+                    setTouchPoint(x, y, mStyle!!)
+                } else if (x > viewWidth * 2 / 3 && y > viewHeight / 3 && y <= viewHeight * 2 / 3) {//在右边触摸
+                    mStyle = STYLE_RIGHT
+                    setTouchPoint(x, y, mStyle!!)
+                } else if (x > viewWidth / 3 && y > viewHeight * 2 / 3) {  //下边触摸
+                    mStyle = STYLE_LOWER_RIGHT
+                    setTouchPoint(x, y, mStyle!!)
+                } else if (x > viewWidth / 3 && x < viewWidth * 2 / 3 && y > viewHeight / 3 && y < viewHeight * 2 / 3) { //中部触摸
+                    mStyle = STYLE_MIDDLE
+                }
+            }
+            MotionEvent.ACTION_MOVE -> {
+                setTouchPoint(event.getX(),event.getY(),mStyle!!)
+            }
+            MotionEvent.ACTION_UP ->{
+                startCancelAnim()
+            }
+        }
+        return true
+    }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
@@ -311,12 +344,12 @@ class BookPageView : View {
         val right = a?.x!!.toInt()
         var top = 0
         val bottom = viewHeight
-        gradientDrawable.setBounds(left,top,right,bottom)
+        gradientDrawable.setBounds(left, top, right, bottom)
 
-        bitmapCanvas.clipPath(pathA,Region.Op.INTERSECT)
+        bitmapCanvas.clipPath(pathA, Region.Op.INTERSECT)
 
-        val mDegrees = Math.toDegrees(Math.atan2(f?.x!!.toDouble() - a?.x!!,f?.y!!.toDouble() - h?.y!!))
-        bitmapCanvas.rotate(mDegrees.toFloat(),a?.x!!,a?.y!!)
+        val mDegrees = Math.toDegrees(Math.atan2(f?.x!!.toDouble() - a?.x!!, f?.y!!.toDouble() - h?.y!!))
+        bitmapCanvas.rotate(mDegrees.toFloat(), a?.x!!, a?.y!!)
         gradientDrawable.draw(bitmapCanvas)
     }
 
