@@ -66,6 +66,11 @@ class BookPageView : View {
     private var viewWidth: Int = 0
     private var viewHeight: Int = 0
 
+    private var pathAContentBitmap: Bitmap? = null
+    private var pathBContentBitmap: Bitmap? = null
+    private var pathCContentBitmap: Bitmap? = null
+
+
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
         init(context, attrs)
     }
@@ -135,6 +140,49 @@ class BookPageView : View {
         pathCContentPaint?.isAntiAlias = true
 
         mMatrix = Matrix()
+        createGradientDrawable()
+    }
+
+    /* private void drawPathAContentBitmap(Bitmap bitmap,Paint pathPaint){
+        Canvas mCanvas = new Canvas(bitmap);
+        //下面开始绘制区域内的内容...
+        mCanvas.drawPath(getPathDefault(),pathPaint);
+        mCanvas.drawText("这是在A区域的内容...AAAA", viewWidth-260, viewHeight-100, textPaint);
+
+        //结束绘制区域内的内容...
+    }
+*/
+    private fun drawPathAContentBitmap(bitmap: Bitmap, pathPaint: Paint) {
+        val canvas = Canvas(bitmap)
+        //TODO 是否可以策略模式修改??
+
+        //绘制区域A内的内容
+        canvas.drawPath(getPathDefault(), pathPaint)
+        canvas.drawText("AAAAAAA区域", viewWidth - 260.toFloat(), viewHeight - 100.toFloat(), textPaint)
+        //结束区域内的绘制
+    }
+
+    private fun drawPathBContentBitmap(bitmap: Bitmap, pathPaint: Paint) {
+        val canvas = Canvas(bitmap)
+
+        //绘制区域B内的内容
+        canvas.drawPath(getPathDefault(), pathPaint)
+        canvas.drawText("BBBBBB", viewWidth - 260.toFloat(), viewHeight - 100.toFloat(), textPaint)
+        //结束区域内的绘制
+    }
+
+    private fun drawPathCContentBitmap(bitmap: Bitmap, pathPaint: Paint) {
+        val canvas = Canvas(bitmap)
+
+        //绘制区域C内的内容
+        canvas.drawPath(getPathDefault(), pathPaint)
+        canvas.drawText("CCCCCCC", viewWidth - 260.toFloat(), viewHeight - 100.toFloat(), textPaint)
+        //结束区域内的绘制
+    }
+
+
+    private fun createGradientDrawable() {
+
 
     }
 
