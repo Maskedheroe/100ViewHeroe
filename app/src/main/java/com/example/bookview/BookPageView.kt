@@ -37,6 +37,10 @@ class BookPageView : View {
     private var mRPathAShadowDis: Float? = null //A区域右阴影矩形短边长度参考值
 
 
+    private var mMatrixArray = floatArrayOf(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 1.0f)
+    private var mMatrix: Matrix? = null
+
+
     companion object {
         const val STYLE_TOP_RIGHT = "STYLE_TOP_RIGHT"
         const val STYLE_LOWER_RIGHT = "STYLE_LOWER_RIGHT"
@@ -129,6 +133,9 @@ class BookPageView : View {
         pathCContentPaint = Paint()
         pathCContentPaint?.color = Color.YELLOW
         pathCContentPaint?.isAntiAlias = true
+
+        mMatrix = Matrix()
+
     }
 
 
@@ -181,9 +188,9 @@ class BookPageView : View {
                 }
             }
             MotionEvent.ACTION_MOVE -> {
-                setTouchPoint(event.getX(),event.getY(),mStyle!!)
+                setTouchPoint(event.getX(), event.getY(), mStyle!!)
             }
-            MotionEvent.ACTION_UP ->{
+            MotionEvent.ACTION_UP -> {
                 startCancelAnim()
             }
         }
