@@ -19,7 +19,7 @@ class BookPageView : View {
     private var pathA: Path? = null
     private var bitmap: Bitmap? = null //缓存bitMap
     private var bitmapCanvas: Canvas? = null     //区域C的绘制画笔
-    private var style : String?= null
+    private var style: String? = null
 
     private var pathCContentPaint: Paint? = null
     private var textPaint: Paint? = null  //文字画笔
@@ -84,14 +84,13 @@ class BookPageView : View {
     private var pathCContentBitmap: Bitmap? = null
 
 
+    constructor(context: Context) : super(context)
+
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
         init(context, attrs)
     }
 
-    constructor(context: Context) : super(context)
-
-    constructor(context: Context,
-                attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr)
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr)
 
     private fun init(context: Context, attrs: AttributeSet?) {
         defaultWidth = 600
@@ -150,6 +149,46 @@ class BookPageView : View {
         style = STYLE_LOWER_RIGHT
         mMatrix = Matrix()
         createGradientDrawable()
+    }
+
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        val height = measureSize(defaultHeight, heightMeasureSpec)
+        val width = measureSize(defaultWidth, widthMeasureSpec)
+        setMeasuredDimension(width, height)
+
+        viewWidth = width
+        viewHeight = height
+        a?.x = -1f
+        a?.y = -1f
+        pathAContentBitmap = Bitmap.createBitmap(viewWidth, viewHeight, Bitmap.Config.RGB_565)
+        drawPathAContentBitmap(pathAContentBitmap!!, pathAPaint!!)
+
+        pathBContentBitmap = Bitmap.createBitmap(viewWidth, viewHeight, Bitmap.Config.RGB_565)
+        drawPathBContentBitmap(pathBContentBitmap!!, pathBPaint!!)
+
+        pathCContentBitmap = Bitmap.createBitmap(viewWidth, viewHeight, Bitmap.Config.RGB_565)
+        drawPathCContentBitmap(pathCContentBitmap!!, pathCPaint!!)
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        super.onDraw(canvas)
+        if (a!!.x == -1f && a!!.y == -1f) {
+            drawPathAContent(canvas, getPathDefault())
+        } else {
+            if (f!!.x == viewWidth.toFloat() && f!!.y == 0f) {
+                drawPathAContent(canvas, getPathAFromTopRight())
+                drawPathBContent(canvas, getPathAFromTopRight())
+                drawPathCContent(canvas, getPathAFromTopRight())
+            } else if (f!!.x == viewWidth.toFloat() && f!!.y == viewHeight.toFloat()) {
+                drawPathAContent(canvas, getPathAFromLowerRight())
+                drawPathBContent(canvas, getPathAFromLowerRight())
+                drawPathCContent(canvas, getPathAFromLowerRight())
+
+            }
+        }
+
     }
 
     private fun drawPathAContentBitmap(bitmap: Bitmap, pathPaint: Paint) {
@@ -220,26 +259,6 @@ class BookPageView : View {
     }
 
 
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        val height = measureSize(defaultHeight, heightMeasureSpec)
-        val width = measureSize(defaultWidth, widthMeasureSpec)
-        setMeasuredDimension(width, height)
-
-        viewWidth = width
-        viewHeight = height
-        a?.x = -1f
-        a?.y = -1f
-        pathAContentBitmap = Bitmap.createBitmap(viewWidth, viewHeight, Bitmap.Config.RGB_565)
-        drawPathAContentBitmap(pathAContentBitmap!!, pathAPaint!!)
-
-        pathBContentBitmap = Bitmap.createBitmap(viewWidth, viewHeight, Bitmap.Config.RGB_565)
-        drawPathBContentBitmap(pathBContentBitmap!!, pathBPaint!!)
-
-        pathCContentBitmap = Bitmap.createBitmap(viewWidth, viewHeight, Bitmap.Config.RGB_565)
-        drawPathCContentBitmap(pathCContentBitmap!!, pathCPaint!!)
-    }
-
     private fun measureSize(defaultSize: Int, measureSpec: Int): Int {
         var result: Int = defaultSize
         val specMode = View.MeasureSpec.getMode(measureSpec)
@@ -286,24 +305,6 @@ class BookPageView : View {
         return true
     }
 
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
-        if (a!!.x == -1f && a!!.y == -1f) {
-            drawPathAContent(canvas, getPathDefault())
-        } else {
-            if (f!!.x == viewWidth.toFloat() && f!!.y == 0f) {
-                drawPathAContent(canvas, getPathAFromTopRight())
-                drawPathBContent(canvas, getPathAFromTopRight())
-                drawPathCContent(canvas, getPathAFromTopRight())
-            } else if (f!!.x == viewWidth.toFloat() && f!!.y == viewHeight.toFloat()) {
-                drawPathAContent(canvas, getPathAFromLowerRight())
-                drawPathBContent(canvas, getPathAFromLowerRight())
-                drawPathCContent(canvas, getPathAFromLowerRight())
-
-            }
-        }
-
-    }
 
     private fun drawPathBContent(bitmapCanvas: Canvas, pathAFromTopRight: Path) {
         bitmapCanvas.save()
@@ -362,7 +363,7 @@ class BookPageView : View {
         mMatrix?.setValues(mMatrixArray) //翻转和旋转
         mMatrix?.preTranslate(-e?.x!!, -e?.y!!)
         mMatrix?.postTranslate(e?.x!!, e?.y!!)
-        bitmapCanvas.drawBitmap(pathCContentBitmap,mMatrix,null)
+        bitmapCanvas.drawBitmap(pathCContentBitmap, mMatrix, null)
 
         drawPathCShadow(bitmapCanvas)
         bitmapCanvas.restore()
@@ -747,7 +748,7 @@ class BookPageView : View {
         }
     }
 
-    public fun startCancelAnim() {
+    private fun startCancelAnim() {
         var dx = 0
         var dy = 0
         if (mStyle.equals(STYLE_TOP_RIGHT)) {
