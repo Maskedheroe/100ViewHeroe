@@ -2,25 +2,12 @@ package com.example.pieBitMap
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
 
-class PieEntry {
-    //颜色
-    private var color: Int? = null
-
-    //百分比
-    private var percentAge: Float? = null
-
-    //条目名
-    private var label: String? = null
-
-    //扇区起始角度
-    private var currentStartAngle: Float? = null
-
-    //扇区总角度
-    private var sweepAngle: Float? = null
+data class PieEntry(var color: Int,var percentage:Float,var label: String,var currentStartAngle: Float,var sweepAngle: Float) {
 }
 
 class MyPieView : View {
@@ -32,6 +19,8 @@ class MyPieView : View {
     private var mRadius: Int? = null
 
     private lateinit var mRectF: RectF
+
+    private var mPieLists : ArrayList<PieEntry>? = null
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attr: AttributeSet?) : super(context, attr) {
@@ -74,4 +63,42 @@ class MyPieView : View {
         mRectF = RectF(-mRadius!!.toFloat(),-mRadius!!.toFloat(),mRadius!!.toFloat(),mRadius!!.toFloat())
     }
 
+    /*  private void initData() {
+        //默认的起始角度为-90°
+        float currentStartAngle = -90;
+        for (int i = 0; i < mPieLists.size(); i++) {
+            PieEntry pie = mPieLists.get(i);
+            pie.setCurrentStartAngle(currentStartAngle);
+            //每个数据百分比对应的角度
+            float sweepAngle = pie.getPercentage() / 100 * 360;
+            pie.setSweepAngle(sweepAngle);
+            //起始角度不断增加
+            currentStartAngle += sweepAngle;
+            //添加颜色
+            pie.setColor(mColorLists.get(i));
+        }
+    }
+*/
+
+
+    private fun initData(){
+
+        var currentStartAngle = -90f //默认起始角度为-90°
+
+        for (i in mPieLists!!.indices){
+            val pie = mPieLists!![i]
+            pie.currentStartAngle = currentStartAngle
+            val sweepAngle = pie.percentage /100 * 360
+            pie.sweepAngle = sweepAngle
+            //每个数据百分比对应的角度
+
+            //起始角度不断增加
+            currentStartAngle += sweepAngle
+
+            //添加颜色
+            pie.color = mColorLists!![i]
+
+        }
+
+    }
 }
