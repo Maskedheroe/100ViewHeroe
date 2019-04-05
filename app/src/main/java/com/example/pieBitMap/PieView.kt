@@ -81,6 +81,8 @@ class MyPieView : View {
 */
 
 
+    private val mColorLists: ArrayList<Int>? = null
+
     private fun initData(){
 
         var currentStartAngle = -90f //默认起始角度为-90°
