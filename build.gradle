@@ -26,3 +26,7 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+println "the root file path is" + getRootDir().absolutePath
+println "the build file path is " + getBuildFile().absolutePath
+println "the project file path is" + getProjectDir().absolutePath
