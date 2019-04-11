@@ -9,7 +9,10 @@ import android.widget.Button
 import android.widget.Toast
 import com.example.bookview.BookPageView
 
+
 class MainActivity : AppCompatActivity() {
+
+
     private var bookPageView: BookPageView? = null
     private var style: String? = null
 

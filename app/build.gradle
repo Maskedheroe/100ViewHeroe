@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
 
 //定义扩展属性，方便语义化代码
-ext{
+ext {
     mCompileSdkVersion = 28
     mLibConstraint = 'com.android.support.constraint:constraint-layout:1.1.3'
 }
@@ -37,4 +37,24 @@ dependencies {
 }
 repositories {
     mavenCentral()
+}
+
+
+//计算Build执行时长
+def startBuildTime
+def endBuildTime
+
+this.afterEvaluate { Project project ->
+
+    def preBuildTask = project.tasks.getByName('preBuild')
+    preBuildTask.doFirst {
+        startBuildTime = System.currentTimeMillis()
+    }
+
+    def buildTask = project.tasks.getByName('build')
+    buildTask.doLast {
+        endBuildTime = System.currentTimeMillis()
+        println "the build time is  ${endBuildTime - startBuildTime }"
+    }
+
 }
