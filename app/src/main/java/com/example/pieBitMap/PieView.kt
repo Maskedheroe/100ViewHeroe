@@ -9,7 +9,10 @@ import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
 
-data class PieEntry(var color: Int, var percentage: Float, var label: String, var currentStartAngle: Float, var sweepAngle: Float) {
+data class PieEntry(var percentage: Float, var label: String) {
+    var color: Int? = null
+    var currentStartAngle: Float? = null
+    var sweepAngle: Float? = null
 }
 
 class MyPieView : View {
@@ -24,7 +27,8 @@ class MyPieView : View {
 
     private var mPieLists: ArrayList<PieEntry>? = null
 
-    private var mPaint : Paint? = null
+    private var mPaint: Paint? = null
+
     constructor(context: Context) : super(context)
     constructor(context: Context, attr: AttributeSet?) : super(context, attr) {
         init()
@@ -33,7 +37,7 @@ class MyPieView : View {
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr)
 
     private fun init() {
-
+        initPaint()
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -43,7 +47,29 @@ class MyPieView : View {
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
+        //将坐标的中心投影到View的中心
         canvas!!.translate(mTotalWidth!! / 2.toFloat(), mTotalHeight!! / 2.toFloat())
+
+        if (isPieListsNull()) {
+            mPaint!!.color = Color.BLACK
+            canvas.drawText("请通过setData添加数据", -120f, 0f, mPaint)
+        } else {
+            //绘制饼状图
+            drawPie(canvas)
+            //绘制中心空洞
+            drawHole(canvas)
+        }
+
+    }
+
+    private fun drawHole(canvas: Canvas) {
+        /* //饼图中间的空洞占据的比例
+         float holeRadiusProportion = 59;
+         canvas.drawCircle(0, 0, mRadius * holeRadiusProportion / 100, mPaint);
+ */
+        mPaint!!.color = Color.WHITE
+        val holeRadiusProportion = 59
+        canvas.drawCircle(0f, 0f, mRadius!! * holeRadiusProportion / 100.toFloat(),mPaint)
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -70,7 +96,7 @@ class MyPieView : View {
     }
 
 
-    private val mColorLists: ArrayList<Int>? = null
+    private var mColorLists: ArrayList<Int>? = null
 
     private fun initData() {
 
@@ -94,17 +120,13 @@ class MyPieView : View {
 
     }
 
-    /*private void drawPie(Canvas canvas) {
-        for (PieEntry pie : mPieLists) {
-            mPaint.setColor(pie.getColor());
-            canvas.drawArc(mRectF,
-                    pie.getCurrentStartAngle(),
-                    pie.getSweepAngle(),
-                    true, mPaint);
-        }
-    }*/
+    public fun setData(list: List<PieEntry>) {
+        this.mPieLists = list as ArrayList<PieEntry>
+        initData()
+        invalidate()
+    }
 
-    private fun initPaint(){
+    private fun initPaint() {
         mPaint = Paint()
         mPaint?.isAntiAlias = true
         mPaint?.color = Color.WHITE
@@ -112,13 +134,33 @@ class MyPieView : View {
 
     }
 
-    private fun drawPie(canvas: Canvas){
+    private fun drawPie(canvas: Canvas) {
         mPieLists?.forEach {
-            mPaint?.color = it.color
-            canvas.drawArc(mRectF,it.currentStartAngle,it.sweepAngle,true,mPaint)
+            mPaint?.color = it.color!!
+            canvas.drawArc(mRectF, it.currentStartAngle!!, it.sweepAngle!!, true, mPaint)
         }
     }
 
+    //判断数据是否为空
+    private fun isPieListsNull(): Boolean {
+        return mPieLists == null || mPieLists!!.size == 0
+    }
+
+    fun setColors(createColors: ArrayList<Int>) {
+        mColorLists = createColors
+        initColors()
+        invalidate()
+    }
+
+    private fun initColors() {
+
+        if (isPieListsNull()) {
+            return
+        }
+        for (i in 0 until mPieLists!!.size) {
+            mPieLists!!.get(i).color = mColorLists!!.get(i)
+        }
+    }
 
 
 }
