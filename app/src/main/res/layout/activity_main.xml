@@ -6,15 +6,19 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <com.example.bookview.BookPageView
+    <!--<com.example.bookview.BookPageView
         android:id="@+id/view_book_page"
         android:layout_width="300dp"
         android:layout_height="450dp"
         android:layout_marginLeft="15dp"
         android:layout_marginTop="15dp"
         android:clickable="true"
-        tools:ignore="MissingConstraints" />
+        tools:ignore="MissingConstraints" />-->
 
+    <com.example.pieBitMap.MyPieView
+        android:id="@+id/pv_pieView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
 
 </RelativeLayout>
