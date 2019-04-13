@@ -58,6 +58,8 @@ class MyPieView : View {
             drawPie(canvas)
             //绘制中心空洞
             drawHole(canvas)
+
+            drawPoint(canvas)
         }
 
     }
@@ -69,7 +71,7 @@ class MyPieView : View {
  */
         mPaint!!.color = Color.WHITE
         val holeRadiusProportion = 59
-        canvas.drawCircle(0f, 0f, mRadius!! * holeRadiusProportion / 100.toFloat(),mPaint)
+        canvas.drawCircle(0f, 0f, mRadius!! * holeRadiusProportion / 100.toFloat(), mPaint)
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -162,8 +164,35 @@ class MyPieView : View {
         }
     }
 
+    private fun drawPoint(canvas: Canvas) {
+        for (pie in mPieLists!!) {
+            val halfAngle = pie.currentStartAngle!! + pie.sweepAngle!! / 2
+            val cos = Math.cos(Math.toRadians(halfAngle.toDouble())).toFloat()
+            val sin = Math.sin(Math.toRadians(halfAngle.toDouble())).toFloat()
 
+            //通过正余弦算出延长点的坐标
+            val xCirclePoint = (mRadius!! + DISTANCE) * cos
+            val yCirclePoint = (mRadius!! + DISTANCE) * sin
+
+            mPaint!!.color = pie.color!!
+
+            //绘制延长点
+            canvas.drawCircle(xCirclePoint, yCirclePoint, SMALLCIRCLERADIUS, mPaint!!)
+
+            //绘制同心圆环
+            mPaint!!.style = Paint.Style.STROKE
+
+            canvas.drawCircle(xCirclePoint, yCirclePoint, SMALLCIRCLERADIUS, mPaint!!)
+            mPaint!!.style = Paint.Style.FILL
+        }
+    }
+
+    companion object {
+        private const val DISTANCE = 14f
+        private const val SMALLCIRCLERADIUS = 3f
+    }
 }
+
 
 //拓展函数的使用
 private val Int.sptoPx: Int
