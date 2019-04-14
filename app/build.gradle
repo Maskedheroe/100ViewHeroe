@@ -24,6 +24,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    sourceSets {
+        main {
+            res.srcDirs = ['src/main/res',
+                             'src/main/res-ad',
+                             'src/main/res-player']
+        }
+    }
 }
 
 dependencies {
@@ -39,7 +47,6 @@ repositories {
     mavenCentral()
 }
 
-
 //计算Build执行时长
 def startBuildTime
 def endBuildTime
@@ -54,7 +61,7 @@ this.afterEvaluate { Project project ->
     def buildTask = project.tasks.getByName('build')
     buildTask.doLast {
         endBuildTime = System.currentTimeMillis()
-        println "the build time is  ${endBuildTime - startBuildTime }"
+        println "the build time is  ${endBuildTime - startBuildTime}"
     }
 
 }
