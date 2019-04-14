@@ -8,6 +8,7 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
+import java.text.DecimalFormat
 
 data class PieEntry(var percentage: Float, var label: String) {
     var color: Int? = null
@@ -28,6 +29,16 @@ class MyPieView : View {
     private var mPieLists: ArrayList<PieEntry>? = null
 
     private var mPaint: Paint? = null
+
+    private val yOffset: Float = 14f
+    private val xOffset: Float = 7f
+    private val extend: Float = 180f
+
+    //延长点的大小
+    private val smallCircleRadius = 3f
+
+    //延长点上同心圆环的大小
+    private val bigCircleRadius = 7f
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attr: AttributeSet?) : super(context, attr) {
@@ -58,8 +69,10 @@ class MyPieView : View {
             drawPie(canvas)
             //绘制中心空洞
             drawHole(canvas)
-
+            //绘制延长点
             drawPoint(canvas)
+            //绘制延长线及文字
+            drawTitleText(canvas)
         }
 
     }
@@ -92,6 +105,8 @@ class MyPieView : View {
 
         //除以2即为饼状图的半径
         mRadius = shortSideLength!!.shr(2)
+
+        mRadius = mRadius!! - 50
 
         //设置RectF的坐标
         mRectF = RectF(-mRadius!!.toFloat(), -mRadius!!.toFloat(), mRadius!!.toFloat(), mRadius!!.toFloat())
@@ -166,7 +181,7 @@ class MyPieView : View {
 
     private fun drawPoint(canvas: Canvas) {
         for (pie in mPieLists!!) {
-            val halfAngle = pie.currentStartAngle!! + pie.sweepAngle!! / 2
+            val halfAngle = pie.currentStartAngle!! + pie.sweepAngle!!.toInt().shr(1)
             val cos = Math.cos(Math.toRadians(halfAngle.toDouble())).toFloat()
             val sin = Math.sin(Math.toRadians(halfAngle.toDouble())).toFloat()
 
@@ -186,6 +201,94 @@ class MyPieView : View {
             mPaint!!.style = Paint.Style.FILL
         }
     }
+
+
+    private fun drawTitleText(canvas: Canvas) {
+        val offsetRadians = Math.atan(yOffset / xOffset.toDouble())
+        val cosOffset = Math.cos(offsetRadians)
+        val sinOffset = Math.sin(offsetRadians)
+
+        for (pie in mPieLists!!) {
+            val halfAngle = pie.currentStartAngle!! + pie.sweepAngle?.toInt()?.shr(1)!!
+            val cos = Math.cos(Math.toRadians(halfAngle.toDouble())).toFloat()
+            val sin = Math.sin(Math.toRadians(halfAngle.toDouble())).toFloat()
+
+            //通过正余弦算出延长点的位置
+            val xCirclePoint = (mRadius!! + DISTANCE) * cos
+            val yCirclePoint = (mRadius!! + DISTANCE) * sin
+
+            mPaint!!.color = pie.color!!
+            canvas.drawCircle(xCirclePoint, yCirclePoint, smallCircleRadius, mPaint!!)
+            //绘制同心圆环
+            mPaint!!.style = Paint.Style.STROKE
+            canvas.drawCircle(xCirclePoint, yCirclePoint, bigCircleRadius, mPaint!!)
+            mPaint!!.style = Paint.Style.FILL
+
+            //将饼图分为四个象限，从右上角开始顺时针，每90度分为一个象限
+            val quadrant: Int = ((halfAngle + 90) / 90).toInt()
+
+            //初始化延长线的起点、转折点、终点
+            var xLineStartPoint: Float = 0f
+            var yLineStartPoint: Float = 0f
+            var xLineEndPoint: Float = 0f
+            var yLineEndPoint: Float = 0f
+            var xLineTurningPoint: Float = 0f
+            var yLineTurningPoint: Float = 0f
+
+            val text = pie.label + " " + DecimalFormat("#.#").format(pie.percentage) + "%"
+
+            val cosLength = bigCircleRadius * cosOffset
+            val sinLength = bigCircleRadius * sinOffset
+
+            when (quadrant) {
+                0 -> {
+                    xLineStartPoint = xCirclePoint + cosLength.toFloat()
+                    yLineStartPoint = yCirclePoint - sinLength.toFloat()
+                    xLineTurningPoint = xLineStartPoint + xOffset
+                    yLineTurningPoint = yLineStartPoint - yOffset
+                    xLineEndPoint = xLineTurningPoint + extend
+                    yLineEndPoint = yLineTurningPoint
+                    mPaint!!.textAlign = Paint.Align.RIGHT
+                    canvas.drawText(text, xLineEndPoint, yLineEndPoint - 5, mPaint!!)
+                }
+                1 -> {
+                    xLineStartPoint = xCirclePoint + cosLength.toFloat()
+                    yLineStartPoint = yCirclePoint + sinLength.toFloat()
+                    xLineTurningPoint = xLineStartPoint + xOffset
+                    yLineTurningPoint = yLineStartPoint + yOffset
+                    xLineEndPoint = xLineTurningPoint + extend
+                    yLineEndPoint = yLineTurningPoint
+                    mPaint!!.textAlign = Paint.Align.RIGHT
+                    canvas.drawText(text, xLineEndPoint + 20, yLineEndPoint - 5, mPaint!!) //此处写死了x的位置，是否可以开放接口给用户进行灵活设置？
+                }
+                2 -> {
+                    xLineStartPoint = xCirclePoint - cosLength.toFloat()
+                    yLineStartPoint = yCirclePoint + sinLength.toFloat()
+                    xLineTurningPoint = xLineStartPoint - xOffset
+                    yLineTurningPoint = yLineStartPoint + yOffset
+                    xLineEndPoint = xLineTurningPoint - extend
+                    yLineEndPoint = yLineTurningPoint
+                    mPaint!!.textAlign = Paint.Align.LEFT
+                    val offset = text.length*10/2    //此处如何处理大长字符串??
+                    canvas.drawText(text, xLineEndPoint - offset, yLineEndPoint - 5, mPaint!!)
+                }
+                3 -> {
+                    xLineStartPoint = xCirclePoint - cosLength.toFloat()
+                    yLineStartPoint = yCirclePoint - sinLength.toFloat()
+                    xLineTurningPoint = xLineStartPoint - xOffset
+                    yLineTurningPoint = yLineStartPoint - yOffset
+                    xLineEndPoint = xLineTurningPoint - extend
+                    yLineEndPoint = yLineTurningPoint
+                    mPaint!!.textAlign = Paint.Align.LEFT
+                    canvas.drawText(text, xLineEndPoint, yLineEndPoint - 5, mPaint!!)
+                }
+            }
+            //绘制延长线
+            canvas.drawLine(xLineStartPoint, yLineStartPoint, xLineTurningPoint, yLineTurningPoint, mPaint!!)
+            canvas.drawLine(xLineTurningPoint, yLineTurningPoint, xLineEndPoint, yLineEndPoint, mPaint!!)
+        }
+    }
+
 
     companion object {
         private const val DISTANCE = 14f
