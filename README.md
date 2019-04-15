@@ -2,10 +2,10 @@
 100Practice
 
 1、翻页效果
-https://juejin.im/post/5a32ade0f265da43252954b2  
+https://juejin.im/post/5a32ade0f265da43252954b2   <完成> <未拓展> <未收集经验>
 
 2、饼状图
-https://juejin.im/post/5c89c6d45188257ade0246d3 注意处理padding的方法
+https://juejin.im/post/5c89c6d45188257ade0246d3 注意处理padding的方法   <完成> <未拓展> <未收集经验>
 
 
 3、掌阅打开书籍
@@ -38,3 +38,5 @@ https://www.jianshu.com/p/f4e3abfab18c?utm_campaign=maleskine&utm_content=note&u
 12、loading轮子 https://www.jianshu.com/p/67b69fc8b63b  
 
 13-18、https://github.com/lygttpod/AndroidCustomView 5-6个自定义控件
+
+19、支付宝支付成功动画 来源于书籍
