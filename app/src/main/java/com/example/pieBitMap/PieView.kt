@@ -40,6 +40,9 @@ class MyPieView : View {
     //延长点上同心圆环的大小
     private val bigCircleRadius = 7f
 
+    //长宽比
+    private var mScale: Float? = null
+
     constructor(context: Context) : super(context)
     constructor(context: Context, attr: AttributeSet?) : super(context, attr) {
         init()
@@ -51,8 +54,13 @@ class MyPieView : View {
         initPaint()
     }
 
+    //处理wrap_content的方法
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        if (mScale!!.toInt() != 0 && MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.AT_MOST) {
+            val height: Int = (mTotalWidth!! / mScale!!).toInt() //设置默认高度
+            setMeasuredDimension(widthMeasureSpec, height)
+        }
     }
 
     override fun onDraw(canvas: Canvas?) {
@@ -78,10 +86,6 @@ class MyPieView : View {
     }
 
     private fun drawHole(canvas: Canvas) {
-        /* //饼图中间的空洞占据的比例
-         float holeRadiusProportion = 59;
-         canvas.drawCircle(0, 0, mRadius * holeRadiusProportion / 100, mPaint);
- */
         mPaint!!.color = Color.WHITE
         val holeRadiusProportion = 59
         canvas.drawCircle(0f, 0f, mRadius!! * holeRadiusProportion / 100.toFloat(), mPaint)
@@ -99,14 +103,57 @@ class MyPieView : View {
     }
 
 
+    /*
+        private void initRectF() {
+
+            Paint.FontMetrics fontMetrics = mPaint.getFontMetrics();
+            //文字的高度
+            float textHeight = fontMetrics.bottom - fontMetrics.top + fontMetrics.leading;
+            //延长线的纵向长度
+            float lineHeight = distance + bigCircleRadius + yOffset;
+            //延长线的横向长度
+            float lineWidth = distance + bigCircleRadius + xOffset + extend;
+            //求出饼状图加延长线和文字 所有内容需要的长方形空间的长宽比
+            mScale = mTotalWidth / (mTotalWidth + lineHeight * 2 + textHeight * 2 - lineWidth * 2);
+
+            //长方形空间其短边的长度
+            float shortSideLength;
+            //通过宽高比选择短边
+            if (mTotalWidth / mTotalHeight >= mScale) {
+                shortSideLength = mTotalHeight;
+            } else {
+                shortSideLength = mTotalWidth / mScale;
+            }
+            //饼图所在的区域为正方形，处于长方形空间的中心
+            //空间的高度减去上下两部分文字显示需要的高度，除以2即为饼图的半径
+            mRadius = shortSideLength / 2 - lineHeight - textHeight;
+            //设置RectF的坐标
+            mRectF = new RectF(-mRadius, -mRadius, mRadius, mRadius);
+        }
+
+        */
     private fun initRectF() {
+
+        val fontMetrics = mPaint!!.fontMetrics
+
+        //获取文字的高度
+        val textHeight = fontMetrics.bottom - fontMetrics.top + fontMetrics.leading
+
+        //延长线的纵向宽度
+        val lineHeight = DISTANCE + bigCircleRadius + yOffset
+
+        //延长线的横向长度
+        val lineWidth = DISTANCE + bigCircleRadius + xOffset + extend
+
+        //求出饼图加延长线和文字 所有内容需要的长方形空间的长宽比
+        mScale = mTotalWidth!! / (mTotalWidth!! + lineHeight * 2 + textHeight * 2 - lineWidth * 2)
+
         //取短边 作为饼状图所在正方形的边长
-        val shortSideLength = if (mTotalHeight!! < mTotalWidth!!) mTotalHeight else mTotalWidth
+        val shortSideLength = if (mTotalWidth!! / mTotalHeight!! >= mScale!!) mTotalHeight else mTotalWidth!! / mScale!!.toInt()
 
-        //除以2即为饼状图的半径
-        mRadius = shortSideLength!!.shr(2)
-
-        mRadius = mRadius!! - 50
+        //饼图所在的区域为正方形，处于长方形空间的中心
+        //空间的高度减去上下两部分文字显示需要的高度，除以2即为饼图的半径
+        mRadius = shortSideLength!!.shr(2) - lineHeight.toInt() - textHeight.toInt()
 
         //设置RectF的坐标
         mRectF = RectF(-mRadius!!.toFloat(), -mRadius!!.toFloat(), mRadius!!.toFloat(), mRadius!!.toFloat())
@@ -269,7 +316,7 @@ class MyPieView : View {
                     xLineEndPoint = xLineTurningPoint - extend
                     yLineEndPoint = yLineTurningPoint
                     mPaint!!.textAlign = Paint.Align.LEFT
-                    val offset = text.length*10/2    //此处如何处理大长字符串??
+                    val offset = text.length * 10 / 2    //此处如何处理大长字符串??
                     canvas.drawText(text, xLineEndPoint - offset, yLineEndPoint - 5, mPaint!!)
                 }
                 3 -> {
