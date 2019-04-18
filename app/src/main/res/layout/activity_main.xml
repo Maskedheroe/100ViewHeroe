@@ -15,10 +15,13 @@
         android:clickable="true"
         tools:ignore="MissingConstraints" />-->
 
-    <com.example.pieBitMap.MyPieView
+    <!--<com.example.pieBitMap.MyPieView
         android:id="@+id/pv_pieView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+-->
 
-
+    <com.example.payforview.AliPayView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 </RelativeLayout>

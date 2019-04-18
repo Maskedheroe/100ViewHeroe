@@ -25,14 +25,15 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+//        showPieView()
+    }
+
+ /*   private fun showPieView() {
         val pieView = findViewById<MyPieView>(R.id.pv_pieView)
         pieView.setColors(createColors())
         pieView.setData(createData())
-//        bookPageView = findViewById<View>(R.id.view_book_page) as BookPageView
+        bookPageView = findViewById<View>(R.id.view_book_page) as BookPageView
     }
-
-
-
 
 
     private fun createData(): ArrayList<PieEntry> {
@@ -53,5 +54,5 @@ class MainActivity : AppCompatActivity() {
         colorLists.add(Color.parseColor("#41D230"))
         colorLists.add(Color.parseColor("#4FAAFF"))
         return colorLists
-    }
+    }*/
 }
