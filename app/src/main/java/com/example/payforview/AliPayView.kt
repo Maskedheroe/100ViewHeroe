@@ -6,7 +6,7 @@ import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
 
-class AliPayView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
+class AliPayView(context: Context?, attrs: AttributeSet?) : View(context, attrs){
 
     private var mPaint: Paint? = null
     private var mDstPath: Path? = null
