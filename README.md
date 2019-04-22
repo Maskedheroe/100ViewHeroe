@@ -39,4 +39,4 @@ https://www.jianshu.com/p/f4e3abfab18c?utm_campaign=maleskine&utm_content=note&u
 
 13-18、https://github.com/lygttpod/AndroidCustomView 5-6个自定义控件
 
-19、支付宝支付成功动画 来源于书籍
+19、支付宝支付成功动画 来源于书籍  <完成> <未拓展> <未收集经验>
