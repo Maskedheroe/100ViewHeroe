@@ -21,7 +21,14 @@
         android:layout_height="match_parent" />
 -->
 
-    <com.example.payforview.AliPayView
+    <!--<com.example.payforview.AliPayView
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent" />-->
+
+    <com.example.fallingsnow.FallingView
+        android:id="@+id/fallingView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#2196F3"/>
+
 </RelativeLayout>

@@ -46,37 +46,7 @@ class FallObject {
     companion object {
         private const val defaultSpeed = 10
 
-        class Builder {
-            private var initSpeed: Int
-            private var bitmap: Bitmap
 
-            constructor(bitmap: Bitmap) {
-                this.initSpeed = defaultSpeed
-                this.bitmap = bitmap
-            }
-
-            /**
-             * 设置物体的初始下落速度
-             * @param speed
-             * @return
-             */
-            fun setSpeed(speed: Int): Builder {
-                this.initSpeed = speed
-                return this
-            }
-
-            fun build(): FallObject {
-                return FallObject(this)
-            }
-
-            fun getInitSpeed(): Int {
-                return initSpeed
-            }
-
-            fun getBitMap(): Bitmap {
-                return bitmap
-            }
-        }
     }
 
     public fun drawObject(canvas: Canvas){
@@ -100,6 +70,36 @@ class FallObject {
         presentSpeed = initSpeed.toFloat()
     }
 
-    //TODO 继续补充
+    class Builder {
+        private var initSpeed: Int
+        private var bitmap: Bitmap
+
+        constructor(bitmap: Bitmap) {
+            this.initSpeed = defaultSpeed
+            this.bitmap = bitmap
+        }
+
+        /**
+         * 设置物体的初始下落速度
+         * @param speed
+         * @return
+         */
+        fun setSpeed(speed: Int): Builder {
+            this.initSpeed = speed
+            return this
+        }
+
+        fun build(): FallObject {
+            return FallObject(this)
+        }
+
+        fun getInitSpeed(): Int {
+            return initSpeed
+        }
+
+        fun getBitMap(): Bitmap {
+            return bitmap
+        }
+    }
 
 }

@@ -6,6 +6,8 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
+import android.view.ViewTreeObserver
+
 /*
 *
 * 要点：
@@ -29,6 +31,8 @@ class FallingView(context: Context?, attrs: AttributeSet?) : View(context, attrs
     private var mTestPaint: Paint? = null
     private var mSnoY: Int? = null
 
+    private var mfallObjects: ArrayList<FallObject>? = null
+
     companion object {
         private const val DEFAULT_WIDTH = 600  //默认宽度
         private const val DEFAULT_HEIGHT = 1000  //默认高度
@@ -42,6 +46,7 @@ class FallingView(context: Context?, attrs: AttributeSet?) : View(context, attrs
         mPaint.color = Color.WHITE
         mPaint.style = Paint.Style.FILL
         mSnoY = 0
+        mfallObjects = arrayListOf()
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -52,6 +57,22 @@ class FallingView(context: Context?, attrs: AttributeSet?) : View(context, attrs
 
         mViewWidth = width
         mViewHeight = height
+    }
+
+    override fun onDraw(canvas: Canvas?) {
+        super.onDraw(canvas)
+        if (mfallObjects!!.isNotEmpty()) {
+            mfallObjects!!.forEach {
+                it.drawObject(canvas!!)
+            }
+            handler.postDelayed(runnable, INTERVALTIME)
+        }
+    }
+
+    private val runnable: Runnable = object : Runnable {
+        override fun run() {
+            invalidate()
+        }
     }
 
     private fun measureSize(defaultSize: Int, measureSpec: Int): Int {
@@ -66,20 +87,23 @@ class FallingView(context: Context?, attrs: AttributeSet?) : View(context, attrs
         return result
     }
 
-    override fun onDraw(canvas: Canvas?) {
-        super.onDraw(canvas)
-        canvas!!.drawCircle(100f, mSnoY!!.toFloat(), 25f, mTestPaint!!)
-        handler.postDelayed(runnable, INTERVALTIME)  //间隔一段时间再重绘
+    /*
+     * 向View添加下落物体对象
+     * @param fallObject 下落物体对象
+     * @param num
+     */
+    public fun addFallObject(fallObject: FallObject, num: Int) {
+        viewTreeObserver.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
+            override fun onPreDraw(): Boolean {
+                viewTreeObserver.removeOnPreDrawListener(this)
+                for (it in 0..num step 1) {
+                    val newFallObject = FallObject(fallObject.builder!!, mViewWidth!!, mViewHeight!!)
+                    mfallObjects!!.add(newFallObject)
+                }
+                invalidate()
+                return true
+            }
+        })
     }
 
-    private val runnable : Runnable = object :Runnable{
-        override fun run() {
-            mSnoY = mSnoY!! + 15
-            if(mSnoY!! > mViewHeight!!){
-                //超出屏幕则重置雪球位置
-                mSnoY = 0
-            }
-            invalidate()
-        }
-    }
 }
