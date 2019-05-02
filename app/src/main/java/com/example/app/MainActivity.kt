@@ -36,11 +36,15 @@ class MainActivity : AppCompatActivity() {
         val bitmapCanvas = Canvas(bitmap)
         bitmapCanvas.drawCircle(25f, 25f, 25f, snowPaint)
 
-        val builder = FallObject.Builder(bitmap)
-        val fallObject = builder.setSpeed(10)
+        val builder = FallObject.Builder(resources.getDrawable(R.mipmap.ic_snow,null))
+        val fallObject = builder
+                .setSpeed(10)
+                .setSize(50,50)
                 .build()
         fallingView.addFallObject(fallObject,50)  //50个雪球
 //        showPieView()
+
+
     }
 
     /*//绘制雪球bitmap
