@@ -2,7 +2,11 @@ package com.example.fallingsnow
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.PixelFormat
+import android.graphics.drawable.Drawable
 import java.util.*
+import android.graphics.Matrix
+
 
 class FallObject {
 
@@ -49,24 +53,24 @@ class FallObject {
 
     }
 
-    public fun drawObject(canvas: Canvas){
+    public fun drawObject(canvas: Canvas) {
         moveObject()
-        canvas.drawBitmap(mBitmap,presentX!!,presentY!!,null)
+        canvas.drawBitmap(mBitmap, presentX!!, presentY!!, null)
     }
 
-    private fun moveObject(){
+    private fun moveObject() {
         moveY()
-        if (presentY!! >parentHeight!!){
+        if (presentY!! > parentHeight!!) {
             reset()
         }
     }
 
-    private fun moveY(){
+    private fun moveY() {
         presentY = presentY?.plus(presentSpeed!!)
     }
 
     private fun reset() {
-        presentY = - objectHeight!!.toFloat()
+        presentY = -objectHeight!!.toFloat()
         presentSpeed = initSpeed.toFloat()
     }
 
@@ -77,6 +81,45 @@ class FallObject {
         constructor(bitmap: Bitmap) {
             this.initSpeed = defaultSpeed
             this.bitmap = bitmap
+        }
+
+        constructor(drawable: Drawable) {
+            this.initSpeed = defaultSpeed
+            this.bitmap = drawableToBitMap(drawable)
+        }
+
+        private fun drawableToBitMap(drawable: Drawable): Bitmap {
+            val bitmap = Bitmap.createBitmap(drawable.intrinsicWidth,
+                    drawable.intrinsicHeight,
+                    if (drawable.opacity != PixelFormat.OPAQUE)
+                        Bitmap.Config.ARGB_8888 else Bitmap.Config.RGB_565)
+            val canvas = Canvas(bitmap)
+            drawable.setBounds(0, 0, drawable.intrinsicWidth, drawable.intrinsicHeight)
+            drawable.draw(canvas)
+            return bitmap
+        }
+
+        /**
+         * 改变bitmap的大小
+         * @param bitmap 目标bitmap
+         * @param newW 目标宽度
+         * @param newH 目标高度
+         * @return
+         */
+        private fun changeBitmapSize(bitmap: Bitmap, newW: Int, newH: Int): Bitmap {
+            val oldW = bitmap.width
+            val oldH = bitmap.height
+
+            //计算缩放比例
+            val scaleWidth = newW / oldW.toFloat()
+            val scaleHeight = newH / oldH.toFloat()
+
+            //取得想要缩放的matrix参数
+            val matrix = Matrix()
+            matrix.postScale(scaleWidth, scaleHeight)
+
+            //得到新的图片
+            return Bitmap.createBitmap(bitmap, 0, 0, oldW, oldH, matrix, true)
         }
 
         /**
@@ -99,6 +142,11 @@ class FallObject {
 
         fun getBitMap(): Bitmap {
             return bitmap
+        }
+
+        fun setSize(w: Int, h: Int): Builder {
+            this.bitmap = changeBitmapSize(this.bitmap, w, h)
+            return this
         }
     }
 
