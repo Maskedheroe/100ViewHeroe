@@ -25,6 +25,9 @@ class FallObject {
     var presentSpeed: Float? = null //当前下降速度
     var builder: Builder? = null    //建造者
 
+    var isSpeedRandom: Boolean? = null
+    var isSizeRandom: Boolean? = null
+
     constructor(builder: Builder, width: Int, height: Int) {
         //随机物体Y坐标，并让物体一开始从屏幕顶部下落
         this.random = Random()
@@ -39,12 +42,24 @@ class FallObject {
         objectHeight = mBitmap.height
         parentHeight = height
         parentWith = width
+
+        this.builder = builder
+        isSpeedRandom = builder.getSpeedRandom()
+        isSizeRandom = builder.getSizeRandom()
+
+        initSpeed = builder.getInitSpeed()
+        randomSpeed()
+        randomSize()
+
     }
+
 
     private constructor(builder: Builder) {
         this.builder = builder
         this.initSpeed = builder.getInitSpeed()
         this.mBitmap = builder.getBitMap()
+        this.isSpeedRandom = builder.getSpeedRandom()
+        this.isSizeRandom = builder.getSizeRandom()
     }
 
     companion object {
@@ -69,23 +84,25 @@ class FallObject {
         presentY = presentY?.plus(presentSpeed!!)
     }
 
-    private fun reset() {
-        presentY = -objectHeight!!.toFloat()
-        presentSpeed = initSpeed.toFloat()
-    }
 
     class Builder {
+        private var isSizeRandom: Boolean? = null
+        private var isSpeedRandom: Boolean? = null
         private var initSpeed: Int
         private var bitmap: Bitmap
 
         constructor(bitmap: Bitmap) {
             this.initSpeed = defaultSpeed
             this.bitmap = bitmap
+            this.isSpeedRandom = false
+            this.isSizeRandom = false
         }
 
         constructor(drawable: Drawable) {
             this.initSpeed = defaultSpeed
             this.bitmap = drawableToBitMap(drawable)
+            this.isSpeedRandom = false
+            this.isSizeRandom = false
         }
 
         private fun drawableToBitMap(drawable: Drawable): Bitmap {
@@ -144,10 +161,113 @@ class FallObject {
             return bitmap
         }
 
-        fun setSize(w: Int, h: Int): Builder {
+        fun setSize(w: Int, h: Int, isRandomSize: Boolean): Builder {
             this.bitmap = changeBitmapSize(this.bitmap, w, h)
+            this.isSizeRandom = isRandomSize
             return this
+        }
+
+        public fun setSpeed(speed: Int, isRandomSpeed: Boolean): Builder {
+            this.initSpeed = speed
+            this.isSpeedRandom = isRandomSpeed
+            return this
+        }
+
+        fun getSpeedRandom(): Boolean? {
+            return isSpeedRandom!!
+        }
+
+        fun getSizeRandom(): Boolean? {
+            return isSizeRandom!!
+        }
+
+    }
+
+    /*
+    /**
+     * 重置object位置
+     */
+    private void reset(){
+        presentY = -objectHeight;
+        randomSpeed();//记得重置时速度也一起重置，这样效果会好很多
+    }
+
+    /**
+     * 随机物体初始下落速度
+     */
+    private void randomSpeed(){
+        if(isSpeedRandom){
+            presentSpeed = (float)((random.nextInt(3)+1)*0.1+1)* initSpeed;//这些随机数大家可以按自己的需要进行调整
+        }else {
+            presentSpeed = initSpeed;
         }
     }
 
+    /**
+     * 随机物体初始大小比例
+     */
+    private void randomSize(){
+        if(isSizeRandom){
+            float r = (random.nextInt(10)+1)*0.1f;
+            float rW = r * builder.bitmap.getWidth();
+            float rH = r * builder.bitmap.getHeight();
+            bitmap = changeBitmapSize(builder.bitmap,(int)rW,(int)rH);
+        }else {
+            bitmap = builder.bitmap;
+        }
+        objectWidth = bitmap.getWidth();
+        objectHeight = bitmap.getHeight();
+    }
+    */
+
+    private fun reset() {
+        presentY = -1 * objectHeight!!.toFloat()
+        randomSpeed()//记得重置时速度也一起重置，这样效果会好很多
+    }
+
+
+    private fun randomSize() {
+        mBitmap = if (isSizeRandom!!) {
+            val r = (random!!.nextInt(10) + 1) * 0.1f
+            val rW = r * builder!!.getBitMap().width
+            val rH = r * builder!!.getBitMap().height
+            changeBitmapSize(builder!!.getBitMap(), rW.toInt(), rH.toInt())
+        } else {
+            builder!!.getBitMap()
+        }
+        objectWidth = mBitmap.width
+        objectHeight = mBitmap.height
+    }
+
+    private fun randomSpeed() {
+
+        if (isSpeedRandom!!) {
+            presentSpeed = ((random!!.nextInt(3) + 1) * 0.1 + 1).toFloat() * initSpeed.toFloat()//这些随机数大家可以按自己的需要进行调整
+        } else {
+            presentSpeed = initSpeed.toFloat()
+        }
+    }
+
+
+    /**
+     * 改变bitmap的大小
+     * @param bitmap 目标bitmap
+     * @param newW 目标宽度
+     * @param newH 目标高度
+     * @return
+     */
+    fun changeBitmapSize(bitmap: Bitmap, newW: Int, newH: Int): Bitmap {
+        var bitmap = bitmap
+        val oldW = bitmap.width
+        val oldH = bitmap.height
+        // 计算缩放比例
+        val scaleWidth = newW.toFloat() / oldW
+        val scaleHeight = newH.toFloat() / oldH
+        // 取得想要缩放的matrix参数
+        val matrix = Matrix()
+        matrix.postScale(scaleWidth, scaleHeight)
+        // 得到新的图片
+        bitmap = Bitmap.createBitmap(bitmap, 0, 0, oldW, oldH, matrix, true)
+        return bitmap
+    }
 }

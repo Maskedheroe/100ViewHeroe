@@ -38,14 +38,14 @@ class MainActivity : AppCompatActivity() {
 
         val builder = FallObject.Builder(resources.getDrawable(R.mipmap.ic_snow,null))
         val fallObject = builder
-                .setSpeed(10)
-                .setSize(50,50)
+                .setSpeed(10,true)
+                .setSize(50,50,true)
                 .build()
         fallingView.addFallObject(fallObject,50)  //50个雪球
 //        showPieView()
 
-
     }
+    
 
     /*//绘制雪球bitmap
 snowPaint = new Paint();
